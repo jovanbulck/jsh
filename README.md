@@ -6,9 +6,9 @@ A proof-of-concept shell implementation.
 `jsh` is free software and makes use of the `GNU Readline` library for input line editing and history.
 
 `jsh` uses the following files:
- * `~/.jshrc`: executed at startup
- * `~/.jsh_history`: contains the command history
- * `~/.jsh_login`: an ascii welcome message to print at startup, if any
+ * `~/.jshrc`: file containing instructions executed at startup
+ * `~/.jsh_history`: contains the command history, auto loaded at startup and appended at logout
+ * `~/.jsh_login`: an ASCII welcome message to print at startup, if any
 
 The following grammar is currently supported. Note that aliases are currenly only a hack...
 
@@ -38,3 +38,8 @@ The following grammar is currently supported. Note that aliases are currenly onl
               executable path
 ```
 To compile `jsh`, clone this respository, `cd` into it and execute `make`.
+
+Note: to disable debug info, do one of the following:
+ * type `debug off`
+ * include the line `debug off` in `~/.jshrc`
+ * change the initialisation of the `DEBUG` global variable in `jsh.c`
