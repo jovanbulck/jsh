@@ -6,9 +6,18 @@ A proof-of-concept shell implementation.
 `jsh` is free software and makes use of the `GNU Readline` library for input line editing and history.
 
 `jsh` uses the following files:
- * `~/.jshrc`: file containing instructions executed at startup
- * `~/.jsh_history`: contains the command history, auto loaded at startup and appended at logout
- * `~/.jsh_login`: an ASCII welcome message to print at startup, if any
+ * `~/.jshrc`: file containing commands to be executed at login
+ * `~/.jsh_history`: containing the command history auto loaded and saved at login/logout
+ * `~/.jsh_login`: file containing the ASCII welcome message auto printed at login of an interactive session
+
+`jsh` supports the following options:
+* -h, --help	display the help message
+* -d, --debug	turn printing of debug messages on
+* -n, --nodebug	turn printing of debug messages on
+* -c, --color	turn coloring of jsh output messages on
+* -o, --nocolor	turn coloring of jsh output messages off
+* -f, --norc	disable autoloading of the ~/.jshrc file
+* -l, --license	display licence information
 
 The following grammar is currently supported. Note that aliases are currenly only a hack...
 
