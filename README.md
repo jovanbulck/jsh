@@ -46,6 +46,17 @@ The following grammar is currently supported. Note that aliases are currenly onl
               built_in            // note: built_ins get priority over cmds
               executable path
 ```
+
+Currenly supported built_ins:
+* `cd`
+* `color`
+* `debug`
+* `exit`
+* `history`
+* `shcat`
+* `alias`      * unstable
+* `unalias`    * not yet implemented
+
 To compile `jsh`, clone this respository, `cd` into it and execute `make`.
 
 Note: to disable debug info, do one of the following:
