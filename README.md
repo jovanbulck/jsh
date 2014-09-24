@@ -6,7 +6,7 @@
                 /___/                                           
 
 
-A proof-of-concept shell implementation.
+A proof-of-concept UNIX shell implementation.
 
 `jsh` is free software and makes use of the `GNU Readline` library for input line editing and history.
 
