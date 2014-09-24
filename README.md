@@ -41,5 +41,5 @@ To compile `jsh`, clone this respository, `cd` into it and execute `make`.
 
 Note: to disable debug info, do one of the following:
  * type `debug off`
- * include the line `debug off` in `~/.jshrc`
+ * include the line "`debug off`" in `~/.jshrc`
  * change the initialisation of the `DEBUG` global variable in `jsh.c`
