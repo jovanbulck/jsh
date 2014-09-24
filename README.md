@@ -5,6 +5,11 @@ A proof-of-concept shell implementation.
 
 `jsh` is free software and makes use of the `GNU Readline` library for input line editing and history.
 
+`jsh` uses the following files:
+ * `~/.jshrc`: executed at startup
+ * `~/.jsh_history`: contains the command history
+ * `~/.jsh_login`: an ascii welcome message to print at startup, if any
+
 The following grammar is currently supported. Note that aliases are currenly only a hack...
 
 ```
