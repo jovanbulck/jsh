@@ -1,2 +1,6 @@
+# compiled object files
 *.o
+# the linked binary
 jsh
+# gedit backup files
+*.*~

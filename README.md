@@ -31,7 +31,7 @@ The following grammar is currently supported. Note that aliases are currenly onl
 
  expr   :=    <space>expr         // expr is a logical combination
               expr<space>
-              #expr
+              expr #comment
               (expr)
               expr ; expr
               expr && expr

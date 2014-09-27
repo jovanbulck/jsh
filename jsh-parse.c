@@ -23,7 +23,7 @@
  *
  * expr   :=    <space>expr         // expr is a logical combination
  *              expr<space>
- *              #expr
+ *              expr #comment
  *              (expr)
  *              expr ; expr
  *              expr && expr
@@ -52,7 +52,7 @@
  *          ls | grep out | print | print | print | cat | print | print | cat | print
  *          (debug off && (echo cur dir is && pwd) && (history | grep ls | shcat | cat | shcat | ../mini-grep pwd | 
  *              cat | shcat | shcat | ../mini-grep shcat)) #comment
- *          # dit ~ is (commentaar) && pwd ; dit (((ook cd && ### echo jo )
+ *          echo hi  # dit ~ is (commentaar) && pwd ; dit (((ook cd && ### echo jo )
  *
  * TODO     - alias definitions e.g. expr="alias jo echo\ jo1\ &&\ echo\ jo2"
  */
@@ -110,7 +110,7 @@ comd *createcomd(char **cmd) {
 void freecomdlist(comd *list) {
     comd *cur = list;
     while (cur != NULL) {
-        printdebug("freeing comd struct for %s", *cur->cmd);
+        printdebug("freeing comd struct for '%s'", *cur->cmd);
         comd *temp = cur;
         cur = cur->next;
         free(temp);
@@ -140,13 +140,14 @@ int parseexpr(char *expr) {
     
     /**** 2. OPERATORS: first subexpression (till first logic operator) has no more brackets ****/
     for (i = 0; i < length; i++) {
-        if (expr[i] == ';') {
+        if (expr[i] == '#') {
+            expr[i] = '\0';
+            return parseexpr(expr);    
+        }
+        else if (expr[i] == ';') {
             expr[i] = '\0';
             parseexpr(expr);
             return parseexpr(expr+i+1);
-        }
-        else if (expr[i] == '#') {
-            return EXIT_SUCCESS;
         }
         else if (strncmp(expr+i, "&&", 2) == 0) {
             expr[i] = '\0';
