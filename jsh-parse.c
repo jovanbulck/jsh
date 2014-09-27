@@ -123,7 +123,7 @@ void freecomdlist(comd *list) {
  */
 //int parseexpr(char **expr, int length) { //TODO length arg?? ipv null term string
 int parseexpr(char *expr) {
-    int resolvebrackets(char*, int);          //helper functions
+    int resolvebrackets(char*, int);          //helper functions declarations
     int splitexpr(char*, char***);
     int length = strlen(expr);
     int i, rv;
@@ -169,13 +169,13 @@ int parseexpr(char *expr) {
     char **curcmd;
     length = splitexpr(expr, &curcmd);      // split the expression, using space as a delimiter
     rv = parsecmd(curcmd, length);
-    printdebug("parseexpr: expr evaluated with value %d", rv);
+    printdebug("parseexpr: expr evaluated with return value %d", rv);
     return rv;
 }
 
 /*
  * resolvebrackets helper function: recursively resolve any subexpression *directly* following an opening '(' left bracket
- *  returns exit status (EXIT_SUCCESS || !EXIT_SUCCESS) of executed expression *expr or -1 if no brackets where evaluated.
+ *  returns exit status (EXIT_SUCCESS || !EXIT_SUCCESS) of executed expression or -1 if no brackets where evaluated.
  */
 int resolvebrackets(char *expr, int length) {
     char *l = strchr(expr,'('); // pointer to first '('
@@ -184,7 +184,7 @@ int resolvebrackets(char *expr, int length) {
     
     int i, rv, count = 0;
     char *r = NULL;
-    // 1.0 find pointer *r to matching ')'
+    // 1. find pointer *r to matching ')'
     for (i = 1; i < length; i++)
         if (expr[i] == '(')
             count++;
@@ -202,14 +202,15 @@ int resolvebrackets(char *expr, int length) {
         return EXIT_FAILURE;
     }
         
-    // 1.1 (recursively) parse the expression between brackets
+    // 2. (recursively) parse the expression between brackets
     *r = '\0';
     printdebug("resolvebrackets: now evaluating '%s'", l+1);
     rv = parseexpr(l+1);
         
-    /* 1.2 parse the remainder of the expression, replacing the evaluated subexpression with 
-    its built-in truth value (T | F), using memmove for overlapping memory; Note: this won't cause 
-    a buf overflow, since we replace at least 2 chars '(' and ')' from expr with a single 'T' or 'F'*/
+    /* 3. parse the remainder of the expression, replacing the evaluated subexpression with 
+    its built-in truth value (T | F), using memmove for overlapping memory
+        [--> no buf overflow, since at least 2 chars '(' and ')' are replaced with a single 'T' or 'F' char]
+    */
     *l = RESOLVE_TRUTH_VAL(rv);
     memmove(l + 1, r + 1, strlen(r+1)+1); // len+1 : also copy the '\0'
     printdebug("resolvebrackets: input resolved to '%s'", l);
@@ -220,7 +221,7 @@ int resolvebrackets(char *expr, int length) {
  * splitexpr helper function: splits a '\0' terminated input string *expr, using space as a delimiter. Note spaces can be '\ ' escaped.
  *  initializes the provided pointer ***ret to point to a NULL terminated array of pointers to *expr space-delimited-substrings
  *  returns curcmd array length
- *  NOTE: this funtion expects an expr without redundant spaces (as is converted by resolvealiases() for example)
+ *  TODO NOTE: this funtion expects an expr without redundant spaces (as is converted by resolvealiases() for example)
  */
 int splitexpr(char *expr, char ***ret) {
     static char **curcmd = NULL;        // array of pointers to current cmd and its arguments
