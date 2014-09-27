@@ -184,16 +184,17 @@ int resolvebrackets(char *expr, int length) {
     int i, rv, count = 0;
     char *r = NULL;
     // 1.0 find pointer *r to matching ')'
-    for (i = 0; i < length; i++)
-        if (expr[i] == '(' && expr+i != l)
+    for (i = 1; i < length; i++)
+        if (expr[i] == '(')
             count++;
-        else if (expr[i] == ')')
+        else if (expr[i] == ')') {
             if (count == 0) {
                 r = expr + i;
                 break;
             }
-        else
-            count--;
+            else
+                count--;
+        }
     
     if (r == NULL) {
         printerr("parse errror: unbalanced parenthesis when evaluating '%s'", expr);
@@ -206,7 +207,7 @@ int resolvebrackets(char *expr, int length) {
     rv = parseexpr(l+1);
         
     /* 1.2 parse the remainder of the expression, replacing the evaluated subexpression with 
-    its built-in truth value (T | F), using memmove for overlapping memory Note: this won't cause 
+    its built-in truth value (T | F), using memmove for overlapping memory; Note: this won't cause 
     a buf overflow, since we replace at least 2 chars '(' and ')' from expr with a single 'T' or 'F'*/
     *l = RESOLVE_TRUTH_VAL(rv);
     memmove(l + 1, r + 1, strlen(r+1)+1); // len+1 : also copy the '\0'
