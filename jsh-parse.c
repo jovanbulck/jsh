@@ -39,6 +39,7 @@
  *              comd
  *
  * comd   :=    comd option         // comd is the unit of fork / built_in
+ *              comd "option with spaces"   // TODO? e.g. echo "ik ben jo" en git commit -m "dit is een message"
  *              alias               // note priority: alias > built_in > executable
  *              built_in
  *              executable_path     // relative (using the PATH env var) or absolute
@@ -247,7 +248,18 @@ int splitexpr(char *expr, char ***ret) {
         
     // 2. split using space as a delimiter
     for (; i < length; i++)
-        if (expr[i] == ' ') {
+        if (expr[i] == '"') {
+            //expr[i] = '\0';
+            int k;
+            for (k=i; k<length; k++)
+                if (expr[k] == '"') {
+                    curcmd[j++] = ch;
+                    expr[k] = '\0';
+                    ch = expr + k +1;
+                }
+            i = k;
+        }
+        else if (expr[i] == ' ') {
             // allow escaping of spaces in input
             if (i > 0 && expr[i-1] == '\\') {
                 memmove(expr+i-1, expr+i, strlen(expr+i)+1); // len+1 : also copy the '\0'
@@ -255,7 +267,7 @@ int splitexpr(char *expr, char ***ret) {
             }
             else {
                 expr[i] = '\0';
-                if (*ch != '\0')    //TODO doc
+                if (*ch != '\0')    //TODO TODO doc
                     curcmd[j++] = ch;
                 ch = expr + i + 1;
                 // realloc curcmd[] if needed
