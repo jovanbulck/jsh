@@ -268,6 +268,7 @@ char* getprompt(int status) {
 /*
  * readcmd: read the next inputline from stdin, add it to the history and resolve all aliases.
  *  returns the resolved inputline or NULL if EOF on a blank line
+ * TODO remove status arg?
  */
 char *readcmd(int status) {
     /** static variables that remain between function calls **/
@@ -282,12 +283,9 @@ char *readcmd(int status) {
     buf = readline(getprompt(status));  //TODO fall back to getline() when non-interactive...
     printdebug("You entered: '%s'", buf);
     
-    // readline returns NULL iff EOF on a blank line
-    if (buf == NULL)
-        return buf;
-    
     // If the line has any text in it, save it to history and resolve aliases
-    if (*buf) {
+    //  (readline returns NULL iff EOF on a blank line)
+    if (buf != NULL && *buf) {
         add_history(buf);
         nb_hist_entries++;
         char *ret = resolvealiases(buf); //TODO

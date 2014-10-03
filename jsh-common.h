@@ -33,6 +33,7 @@
 #include <errno.h>
 #include <stdarg.h>
 #include <assert.h>
+#include <stdbool.h>
 
 // ########## common macro definitions #########
 #define ASSERT      1                    // whether or not to include the assert statements in the pre-compilation phase

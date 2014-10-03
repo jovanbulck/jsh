@@ -26,10 +26,12 @@ Supported options:
 
 The following grammar is currently supported. Note that aliases are currenly only a hack...
 
+alias               // alias is a symbolic link to a comd; no expr or cmd...
+
 ```
  input  :=    expr
 
- expr   :=    <space>expr         // expr is a logical combination
+ expr   :=    <space>expr         // expr is a logical combination of cmds
               expr<space>
               expr #comment
               (expr)
@@ -46,10 +48,12 @@ The following grammar is currently supported. Note that aliases are currenly onl
               cmd &               *TODO not yet implemented
               comd
 
- comd   :=    alias               // alias is a symbolic link to a comd; no expr or cmd...
-              comd option         // comd is a single executable; the unit of built_in / fork
-              built_in            // note: built_ins get priority over cmds
-              executable path
+ comd   :=    comd option         // comd is the unit of fork / built_in
+              alias               // note priority: alias > built_in > executable
+              built_in
+              executable_path     // relative (using the PATH env var) or absolute
+
+ alias  :=    (expr)              // alias is a symbolic linkt to an expr
 ```
 
 Currenly supported built_ins:

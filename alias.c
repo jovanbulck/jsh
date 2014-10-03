@@ -106,53 +106,95 @@ int printaliases() {
 
 
 /*
- * resolvealiases: substitutes all known aliases in the inputstring. Returns a pointer to the substituted string.
+ * resolvealiases: substitutes all known aliases in the inputstring. Returns a pointer to the alias-expanded string.
  *  NOTE: this function returns a pointer to a newly malloced() string. The caller should free() it afterwards, 
  *        as well as also the inputstring *s, if needed
  *
  *  current limitations for aliases:
- *      - alias resolving is done before expression parsing -> if the name of an alias is used as an argument, the argument will also be expanded
- *      - aliases must be space delimited (e.g. echo jo &&clr won't work)
- *      - any spaces in the value must be escaped in the input for the 'alias' cmd    e.g. alias ls ls\ --color=auto
- * TODO allow escaping eg \~ ??
+ * DONE - alias resolving is done before expression parsing -> if the name of an alias is used as an argument, the argument will also be expanded
+ * DONE - aliases must be space delimited (e.g. echo jo &&clr won't work)
+ * TODO - any spaces in the value must be escaped in the input for the 'alias' cmd    e.g. alias ls ls\ --color=auto
+ * TODO allow escaping eg \~ ?? strstr
  */
 char *resolvealiases(char *s) {
-    int maxsize = strlen(s) + total_alias_val_length;   // the max size of the resolved input string s
-    char *ret = malloc(sizeof (char) * maxsize);        // alloc space for the return value
-    ret[0] = '\0';
+    bool is_valid_alias(ALIAS*, char*, int); // helper function def
+
+    // alloc enough space for the return value
+    int maxsize = strlen(s) + total_alias_val_length; 
+    char *ret = malloc(sizeof (char) * maxsize);
+    strcpy(ret, s);
     
-    // split the supplied string using space as a delimiter
-    char *a[sizeof (char) * maxsize];
-    char *c = strtok(s, " ");
-    if (c == NULL) // s consists of only spaces
-        return strcpy(ret, "");
-    int i = 0;
-    do {
-        a[i++] = c;
-    } while ((c = strtok(NULL, " ")));
-    
-    #define CAT_SPACE \
-        if (j < i-1) \
-            strcat(ret, " ");
-    
-    int j, k, found;
-    for (j = 0; j < i; j++) {
-        found = 0;
-        ALIAS *cur;
-        for (cur = head; cur != NULL && !found; cur = cur->next) {
-             if (strcmp(a[j], cur->key) == 0) {
-               found = 1;
-               strcat(ret, cur->value);
-               CAT_SPACE;
+    // find all alias key substrings, replacing them if valid in context
+    ALIAS *cur;
+    char *p, *str; // p is pointer to matched substring; str is pointer to not-yet-checked string
+    for (cur = head; cur != NULL; cur = cur->next)
+        for (str = ret; (p = strstr(str, cur->key)) != NULL;) {
+            if (is_valid_alias(cur, ret, p-ret)) {
+                printdebug("alias: '%s' VALID in context '%s'", cur->key, p);
+                
+                char *after = p + strlen(cur->key);
+                memmove(p + strlen(cur->value), after, strlen(after)+1); // overlapping mem; len+1 : also copy the '\0'
+                memcpy(p, cur->value, strlen(cur->value)); // non-overlapping mem
+                str = p+strlen(cur->value);
+                }
+            else {
+                printdebug("alias: '%s' INVALID in context '%s'", cur->key, p);
+                str = p+strlen(cur->key);
             }
         }
-        // no matching alias: copy unaltered
-        if (!found) {
-            strcat(ret, a[j]);
-            CAT_SPACE;
-        }
-    }
     
     printdebug("alias: input resolved to: '%s'", ret);
     return ret;
 }
+
+/*
+ * is_valid_alias: returns whether or not an occurence of an alias key is valid (i.e. must be 
+ *  replaced by its value) in a given context string. An alias match is valid iff it occurs 
+ *  as a comd in the grammar.
+ *
+ *  @param alias: the alias struct corresponding to the alias that is matched
+ *  @param context: the context string where the alias is matched
+ *  @param i: the index in the context string where the alias is matched: context+i equals alias->key
+ */
+bool is_valid_alias(ALIAS *alias, char *context, int i) {
+    #if ASSERT
+        assert(strncmp(context+i, alias->key, strlen(alias->key)) == 0);
+    #endif
+    
+    // built_in aliases are always valid
+    if (*alias->key == '~')
+        return true;
+    
+    // check the context following the alias occurence
+    char *after = context + i + strlen(alias->key);
+    bool after_ok = (*after == ' ' || *after == '\0' || *after == '|' || *after == ';' || *after == ')' ||
+        (strncmp(after, "&&", 2) == 0) || (strncmp(after, "||", 2) == 0));
+    
+    if (!after_ok)
+        return false;
+    
+    // check the context preceding the alias occurence
+    char *before = context + i;
+    int nb_before = i;
+    while (nb_before > 0 && (*(before-1) == ' ' || *(before-1) == '(')) {
+        before--;
+        nb_before--;
+    }
+    bool before_ok = ( nb_before == 0 || (*(before-1) == '|' || *(before-1) == ';') || 
+        (nb_before >= 2 && strncmp(before-2, "&&", 2) == 0 || strncmp(before-2, "||", 2) == 0));
+    
+    return before_ok;
+}
+
+/*
+bool is_valid_alias(ALIAS *alias, char *context) {
+    if (*context == '\0' || *alias->key == '~')
+        return true;
+    
+    char *contextend = context + strlen(context);   
+    char prev = *(contextend-2);   // the first non-space character preceding the alias in the context string
+    char* prevprev = (contextend-3);
+    bool ret = (prev == '|' || prev == ';' || strncmp(prevprev,"&&", 2) == 0 || strncmp(prevprev,"||", 2) == 0);
+    printdebug("is_valid_alias: '%s', %d", alias->key, ret);
+    return ret;
+}*/

@@ -54,7 +54,7 @@
  *              cat | shcat | shcat | ../mini-grep shcat)) #comment
  *          echo hi  # dit ~ is (commentaar) && pwd ; dit (((ook cd && ### echo jo )
  *
- * TODO     - alias definitions e.g. expr="alias jo echo\ jo1\ &&\ echo\ jo2"
+ * TODO     - alias definitions e.g. expr="alias jo echo\ jo1\ &&\ echo\ jo2" TODO TODO alias expr input
  */
 
 #define RESOLVE_TRUTH_VAL(rv) ((rv == EXIT_SUCCESS)? 'T' : 'F') // note: 'T' and 'F' are built-ins
@@ -221,7 +221,7 @@ int resolvebrackets(char *expr, int length) {
  * splitexpr helper function: splits a '\0' terminated input string *expr, using space as a delimiter. Note spaces can be '\ ' escaped.
  *  initializes the provided pointer ***ret to point to a NULL terminated array of pointers to *expr space-delimited-substrings
  *  returns curcmd array length
- *  TODO NOTE: this funtion expects an expr without redundant spaces (as is converted by resolvealiases() for example)
+ *  TODO DONE NOTE: this funtion expects an expr without redundant spaces (as is converted by resolvealiases() for example)
  */
 int splitexpr(char *expr, char ***ret) {
     static char **curcmd = NULL;        // array of pointers to current cmd and its arguments
@@ -255,7 +255,8 @@ int splitexpr(char *expr, char ***ret) {
             }
             else {
                 expr[i] = '\0';
-                curcmd[j++] = ch;
+                if (*ch != '\0')    //TODO doc
+                    curcmd[j++] = ch;
                 ch = expr + i + 1;
                 // realloc curcmd[] if needed
                 if (j >= CMD_OPT_ALLOC_UNIT * curcmd_realloc)
