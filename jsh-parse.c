@@ -38,10 +38,10 @@
  *              cmd &               *TODO
  *              comd
  *
- * comd   :=    alias               // alias is a symbolic link to a comd; no expr or cmd...
- *              comd option         // comd is a single executable; the unit of built_in / fork
- *              built_in            // note: built_ins get priority over cmds
- *              executable path
+ * comd   :=    comd option         // comd is the unit of fork / built_in
+ *              alias               // note priority: alias > built_in > executable
+ *              built_in
+ *              executable_path     // relative (using the PATH env var) or absolute
  * ----------------------------------------------------------------------
  *
  * e.g.  :  ls / -l  >> out.txt && cat < out.txt | grep --color=auto -B 2 usr ; pwd

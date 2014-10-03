@@ -63,8 +63,8 @@ Currenly supported built_ins:
 * `exit`
 * `history`
 * `shcat`
-* `alias`      * unstable
-* `unalias`    * not yet implemented
+* `alias`
+* `unalias`
 
 To compile `jsh`, clone this respository, `cd` into it and execute `make`.
 

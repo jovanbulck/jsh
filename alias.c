@@ -111,10 +111,7 @@ int printaliases() {
  *        as well as also the inputstring *s, if needed
  *
  *  current limitations for aliases:
- * DONE - alias resolving is done before expression parsing -> if the name of an alias is used as an argument, the argument will also be expanded
- * DONE - aliases must be space delimited (e.g. echo jo &&clr won't work)
  * TODO - any spaces in the value must be escaped in the input for the 'alias' cmd    e.g. alias ls ls\ --color=auto
- * TODO allow escaping eg \~ ?? strstr
  */
 char *resolvealiases(char *s) {
     bool is_valid_alias(ALIAS*, char*, int); // helper function def
@@ -150,7 +147,7 @@ char *resolvealiases(char *s) {
 /*
  * is_valid_alias: returns whether or not an occurence of an alias key is valid (i.e. must be 
  *  replaced by its value) in a given context string. An alias match is valid iff it occurs 
- *  as a comd in the grammar.
+ *  as a comd in the grammar and it's not '\' escaped.
  *
  *  @param alias: the alias struct corresponding to the alias that is matched
  *  @param context: the context string where the alias is matched
@@ -161,7 +158,14 @@ bool is_valid_alias(ALIAS *alias, char *context, int i) {
         assert(strncmp(context+i, alias->key, strlen(alias->key)) == 0);
     #endif
     
-    // built_in aliases are always valid
+    // allow escaping '\' of aliases
+    if ( i > 0 && *(context+i-1) == '\\' ) {
+        printdebug("alias: escaping '%s'", alias->key);
+        memmove(context+i-1, context+i, strlen(context+i)+1);
+        return false;
+    }
+    
+    // built_in aliases are valid in any context
     if (*alias->key == '~')
         return true;
     
