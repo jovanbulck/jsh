@@ -4,3 +4,5 @@
 jsh
 # gedit backup files
 *.*~
+
+.fuse_hidden*

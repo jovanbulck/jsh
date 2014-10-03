@@ -145,6 +145,9 @@ int parseexpr(char *expr) {
             expr[i] = '\0';
             return parseexpr(expr);    
         }
+        else if (expr[i] == '"' && (i == 0 || expr[i-1] != '\\')) {
+            break;  //(unescaped) quotes protect their content from being interpreted
+        }
         else if (expr[i] == ';') {
             expr[i] = '\0';
             parseexpr(expr);
@@ -247,34 +250,43 @@ int splitexpr(char *expr, char ***ret) {
     char *ch = expr + i;             // ch is pointer to the next token to add
         
     // 2. split using space as a delimiter
-    for (; i < length; i++)
-        if (expr[i] == '"') {
-            //expr[i] = '\0';
-            int k;
-            for (k=i; k<length; k++)
+    for (; i < length; i++) {
+        // allow escaping (i.e. skipping) the next char
+        #define CHK_ESCAPING(index) \
+            if (expr[index] == '\\' && index < length-1) { \
+                printdebug("escaping char '%c' in '%s'", expr[index+1], ch); \
+                memmove(expr+index, expr+index+1, strlen(expr+index+1) + 1); \
+                index += 2; \
+            }
+            
+        CHK_ESCAPING(i)
+        if (expr[i] == '"') { //TODO TODO doc -> protect content
+            ch = expr + i + 1;
+            int k; bool found;
+            for (k=i+1; k < length && !found; k++) {
+                CHK_ESCAPING(k)
                 if (expr[k] == '"') {
+                    expr[k] = '\0';                
                     curcmd[j++] = ch;
-                    expr[k] = '\0';
-                    ch = expr + k +1;
+                    ch = expr + k + 1;
+                    found = true;
                 }
+            }
+            if (!found)
+                printerr("parse errror: unbalanced quoting. Added end quotes \"%s\"...", ch);
             i = k;
         }
         else if (expr[i] == ' ') {
-            // allow escaping of spaces in input
-            if (i > 0 && expr[i-1] == '\\') {
-                memmove(expr+i-1, expr+i, strlen(expr+i)+1); // len+1 : also copy the '\0'
-                printdebug("escaping '%s'", ch);
-            }
-            else {
-                expr[i] = '\0';
-                if (*ch != '\0')    //TODO TODO doc
-                    curcmd[j++] = ch;
-                ch = expr + i + 1;
-                // realloc curcmd[] if needed
-                if (j >= CMD_OPT_ALLOC_UNIT * curcmd_realloc)
-                    REALLOC_CURCMD;
-            }
+            expr[i] = '\0';
+            if (*ch != '\0')    //TODO TODO doc
+                curcmd[j++] = ch;
+            ch = expr + i + 1;
+            // realloc curcmd[] if needed
+            if (j >= CMD_OPT_ALLOC_UNIT * curcmd_realloc)
+                REALLOC_CURCMD;
         }
+    }
+    
     if (j == 0 || *ch) // ignore trailing spaces
         curcmd[j++] = ch; // add trailing token        
     curcmd[j] = NULL;
