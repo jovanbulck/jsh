@@ -24,9 +24,7 @@ Supported options:
 * -f, --norc	disable autoloading of the ~/.jshrc file
 * -l, --license	display licence information
 
-The following grammar is currently supported. Note that aliases are currenly only a hack...
-
-alias               // alias is a symbolic link to a comd; no expr or cmd...
+The following grammar is currently supported.
 
 ```
  input  :=    expr
@@ -64,7 +62,7 @@ Currenly supported built_ins:
 * `exit`
 * `history`
 * `shcat`
-* `alias`
+* `alias`       // syntax: alias key "value with spaces"
 * `unalias`
 
 To compile `jsh`, clone this respository, `cd` into it and execute `make`.
