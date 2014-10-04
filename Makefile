@@ -8,4 +8,4 @@ alias: alias.c alias.h jsh-common.h
 jsh: jsh-parse.c jsh.c jsh-common.h
 	gcc -g -c jsh.c -o jsh.o
 link: jsh-common.o jsh.o alias.o
-	gcc -g -l readline jsh-common.o jsh.o alias.o -o jsh
+    gcc -g jsh-common.o jsh.o alias.o -o jsh -l readline
