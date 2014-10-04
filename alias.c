@@ -76,11 +76,11 @@ TODO doc
 int unalias(char *key) {
     ALIAS *cur = head;
     ALIAS *prev = NULL;
-    int found = 0;
+    bool found = false;
     while (cur != NULL && !found) {
         if (strncmp(cur->key, key, MAX_ALIAS_KEY_LENGTH) == 0) {
-            found = 1;
-            if(prev)
+            found = true;
+            if (prev)
                 prev->next = cur->next;
             else
                 cur = NULL;
@@ -112,6 +112,7 @@ int printaliases() {
  *
  *  current limitations for aliases:
  * TODO - any spaces in the value must be escaped in the input for the 'alias' cmd    e.g. alias ls ls\ --color=auto
+ *                                                                                    alt syntax: alias ls "ls --color=auto"
  */
 char *resolvealiases(char *s) {
     bool is_valid_alias(ALIAS*, char*, int); // helper function def
