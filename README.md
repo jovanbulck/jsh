@@ -66,9 +66,4 @@ Currenly supported built_ins:
 * `alias`       // syntax: alias key "value with spaces"
 * `unalias`
 
-To compile `jsh`, clone this respository, `cd` into it and execute `make`.
-
-Note: to disable debug info, do one of the following:
- * type `debug off`
- * include the line "`debug off`" in `~/.jshrc`
- * change the initialisation of the `DEBUG` global variable in `jsh.c`
+To compile `jsh`, clone this respository, `cd` into it and execute `make`. See [the wiki page](https://github.com/jovanbulck/jo-shell/wiki/Compiling-and-running) for more info.
