@@ -34,6 +34,7 @@ alias               // alias is a symbolic link to a comd; no expr or cmd...
  expr   :=    <space>expr         // expr is a logical combination of cmds
               expr<space>
               expr #comment
+              "expr"
               (expr)
               expr ; expr
               expr && expr

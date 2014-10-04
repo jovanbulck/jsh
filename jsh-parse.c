@@ -24,6 +24,7 @@
  * expr   :=    <space>expr         // expr is a logical combination
  *              expr<space>
  *              expr #comment
+ *              "expr"
  *              (expr)
  *              expr ; expr
  *              expr && expr
@@ -55,7 +56,7 @@
  *              cat | shcat | shcat | ../mini-grep shcat)) #comment
  *          echo hi  # dit ~ is (commentaar) && pwd ; dit (((ook cd && ### echo jo )
  *
- * TODO     - alias definitions e.g. expr="alias jo echo\ jo1\ &&\ echo\ jo2" TODO TODO alias expr input
+ * TODO     alias replacement between () for truth value?
  */
 
 #define RESOLVE_TRUTH_VAL(rv) ((rv == EXIT_SUCCESS)? 'T' : 'F') // note: 'T' and 'F' are built-ins
@@ -128,6 +129,7 @@ int parseexpr(char *expr) {
     int splitexpr(char*, char***);
     int length = strlen(expr);
     int i, rv;
+    bool inquotes = false;
     
     /**** 0. skip all leading spaces tabs and newlines ****/
     int k =  strspn(expr, " \t\n");
@@ -141,12 +143,14 @@ int parseexpr(char *expr) {
     
     /**** 2. OPERATORS: first subexpression (till first logic operator) has no more brackets ****/
     for (i = 0; i < length; i++) {
-        if (expr[i] == '#') {
+        if (inquotes && (expr[i] != '"' || expr[i-1] == '\\'))
+            continue;   //(unescaped) quotes protect their content from being interpreted
+        else if (expr[i] == '#') {
             expr[i] = '\0';
             return parseexpr(expr);    
         }
         else if (expr[i] == '"' && (i == 0 || expr[i-1] != '\\')) {
-            break;  //(unescaped) quotes protect their content from being interpreted
+            inquotes = inquotes?false:true;
         }
         else if (expr[i] == ';') {
             expr[i] = '\0';
@@ -256,29 +260,34 @@ int splitexpr(char *expr, char ***ret) {
             if (expr[index] == '\\' && index < length-1) { \
                 printdebug("escaping char '%c' in '%s'", expr[index+1], ch); \
                 memmove(expr+index, expr+index+1, strlen(expr+index+1) + 1); \
-                index += 2; \
+                length--; \
+                index++; \
             }
             
         CHK_ESCAPING(i)
         if (expr[i] == '"') { //TODO TODO doc -> protect content
+            expr[i] = '\0';
+            if (ch < expr + i)
+                curcmd[j++] = ch; //TODO realloc??
             ch = expr + i + 1;
-            int k; bool found;
+            int k;
+            bool found = false;
             for (k=i+1; k < length && !found; k++) {
                 CHK_ESCAPING(k)
                 if (expr[k] == '"') {
                     expr[k] = '\0';                
-                    curcmd[j++] = ch;
+                    curcmd[j++] = ch; //TODO realloc??
                     ch = expr + k + 1;
                     found = true;
                 }
             }
             if (!found)
-                printerr("parse errror: unbalanced quoting. Added end quotes \"%s\"...", ch);
-            i = k;
+                printerr("parse errror: unbalanced quoting -> added end quotes \"%s\"...", ch);
+            i = k-1;
         }
         else if (expr[i] == ' ') {
             expr[i] = '\0';
-            if (*ch != '\0')    //TODO TODO doc
+            if (ch < expr + i)    //TODO TODO doc
                 curcmd[j++] = ch;
             ch = expr + i + 1;
             // realloc curcmd[] if needed
