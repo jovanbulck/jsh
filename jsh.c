@@ -76,6 +76,10 @@ int main(int argc, char **argv) {
     things_todo_at_start();
     
     signal(SIGINT, sig_int_handler);
+
+    // TODO ignore SIGSTOP (^Z) --> "The system shall not allow a process to catch the signals SIGKILL and SIGSTOP." :/
+    //signal(SIGSTOP, SIG_IGN);
+
     // after receiving SIGINT, program is continued on the next line
     if (sigsetjmp(ctrlc_buf, 1) == 0)
         status = 0;     // get here on direct call
@@ -397,6 +401,44 @@ int parse_built_in(comd *comd, int index) {
             CHK_ARGC("unalias", 1);
             return unalias(comd->cmd[1]); //TODO dit wordt geresolved ...
             break;
+            
+        /* TODO
+        case JOBS:
+            CHK_ARGC("jobs", 0);
+            printjobs();
+            return EXIT_SUCCESS;
+            break;
+        case BG:
+            CHK_ARGC("fg", 1);
+            add to list
+            send SIGCONT
+
+            return SUCCESS;
+            break;
+        case FG:
+            CHK_ARGC("fg", 1);
+            remove from list
+            send SIGCONT
+            
+            wait(pid, &status);
+            return status;
+            
+            //TODO http://programmers.stackexchange.com/questions/162940/how-do-i-implement-the-bg-and-fg-commands-functionaliity-in-my-custom-unix-s
+            " 
+
+Suspending a command (CTRL-Z) works by sending a SIGSTOP to the child process. The shell is then free to interact with the user via stdin/stdout.
+
+Resuming is accomplished by sending SIGCONT to the child process and then continuing to wait for it to finish.
+
+Backgrounding a process is accomplished by sending SIGCONT but not waiting for it to finish. In this case, both the shell and the child process can interact with stdout/stderr, but stdin is typically intercepted by the shell.
+
+Starting a process in the background is accomplished by doing a fork/exec, but not blocking until the child process exists.
+
+Typically (as in always) a shell will also handle SIGCHLD, which is the way the OS notifies the parent process that a child processes has finished so that the parent can collect the exit code. Otherwise you end up with "zombie" processes; ones which aren't running but which haven't yet been collected by a parent."
+            
+            break
+        */
+            
         default:
             printerr("parse_built_in: unrecognized built_in command: '%s' with index %d", *comd->cmd, index);
 			exit(EXIT_FAILURE);

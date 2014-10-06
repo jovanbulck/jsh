@@ -348,7 +348,14 @@ int parsecmd(char **cmd, int length) {
             CHK_FILE(">")
             cmd[i++] = NULL;
             pipeline_tail->outf = cmd[i];
-        } 
+        }
+        /* TODO
+        else if (*cmd[i] == '&') {
+            cmd[i]= ' ';
+            // evt valid context checken (only at end?, not between pipes?)
+            pipeline_tail->on_bg = true;
+        }
+        */
     }
     // base: pipeline of comds
     return execute(pipeline_head, nbpipes);
@@ -422,19 +429,35 @@ int execute(comd *pipeline, int npipes) {
         }
         // ######## parent process execution: continue loop ########
         CLOSE_PREV_PIPE
+        /* TODO
+        if (cur->on_bg)
+            bg_pid_list.add(pid);   // global linked list (in new c/h file) that is also used by the built_ins 'jobs', 'fg' and 'bg'
+        else
+            wait_pid_list.add(pid);
+        */
     }
     // ######## continued parent process execution: wait for children completion ########
     CLOSE_ALL_PIPES; // close all remaining open pipe fds; no longer needed
-    // wait for children completion
+    // wait for children completion TODO
     int statuschild = 0;
     for (k = 0; k <= nbchildren; k++)
         wait(&statuschild);
+        
+    /* TODO
+    for each pid in wait_pid_list do
+        waitpid(pid, &statuschild, 0);
+    */
+        
     // free() the comd list
     freecomdlist(pipeline);
     
     // return status of last process in the pipeline
     status = ((status == -1)? statuschild: status);
     return ((WIFEXITED(status)? WEXITSTATUS(status): WTERMSIG(status))); //TODO WIFSTOPPED
+    
+    /*
+    TODO if SIGSTOP then add to bg_list
+    */
     
     /*int rv;
     if ( WIFSIGNALED(status) ) {
