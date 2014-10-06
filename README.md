@@ -38,7 +38,7 @@ The following grammar is currently supported.
               expr ; expr
               expr && expr
               expr || expr
-              cmd &               *TODO not yet implemented; & only valid at end of cmd
+              cmd &               // cmd is the unit of backgrounding
               cmd
 
  cmd    :=    cmd | cmd           // cmd is the unit of truth value evaluation
