@@ -450,7 +450,7 @@ int execute(comd *pipeline, int npipes) {
     WAITING_FOR_CHILD = true;
     for (k = 0; k < nbchildren; k++) {
     //TODO http://stackoverflow.com/questions/14034895/waitpid-blocking-when-it-shouldnt
-        waitpid(-1, &statuschild, WUNTRACED); // wait for either completion or SIGINT (^C) or SIGSTOP (^Z) delivery
+        waitpid(-1, &statuschild, WUNTRACED); // wait for either completion or SIGSTOP (^Z) delivery
         printdebug("waiting completed: child %d of %d", k+1, nbchildren);
     }
     WAITING_FOR_CHILD = false;
