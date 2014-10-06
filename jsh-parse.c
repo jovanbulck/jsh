@@ -419,6 +419,13 @@ int execute(comd *pipeline, int npipes) {
             printdebug("fork: now executing '%s'", *cur->cmd);
             I_AM_FORK = 1;
             
+            /* TODO see msh source code
+            signal(SIGCHLD, &signalHandler_child);
+            */
+                signal(SIGINT, SIG_DFL);
+                signal(SIGQUIT, SIG_DFL);
+                signal(SIGTSTP, SIG_DFL);
+                
             redirectstreams(cur, stdinfd, stdoutfd);
             CLOSE_ALL_PIPES; // no longer needed
             // TODO use exevp to auto search for the cmd, using the PATH env
@@ -440,8 +447,13 @@ int execute(comd *pipeline, int npipes) {
     CLOSE_ALL_PIPES; // close all remaining open pipe fds; no longer needed
     // wait for children completion TODO
     int statuschild = 0;
-    for (k = 0; k <= nbchildren; k++)
-        wait(&statuschild);
+    WAITING_FOR_CHILD = true;
+    for (k = 0; k < nbchildren; k++) {
+    //TODO http://stackoverflow.com/questions/14034895/waitpid-blocking-when-it-shouldnt
+        waitpid(-1, &statuschild, WUNTRACED); // wait for either completion or SIGINT (^C) or SIGSTOP (^Z) delivery
+        printdebug("waiting completed: child %d of %d", k+1, nbchildren);
+    }
+    WAITING_FOR_CHILD = false;
         
     /* TODO
     for each pid in wait_pid_list do

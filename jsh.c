@@ -45,6 +45,7 @@ void sig_int_handler(int sig);
 int DEBUG = 1;
 int COLOR = 1;
 int LOAD_RC = 1;
+bool WAITING_FOR_CHILD = false;  // TODO whether or not waiting for a child process termination
 int I_AM_FORK = 0;
 int IS_INTERACTIVE;      // initialized in things_todo_at_start; (compiler's 'constant initializer' complaints)
 int nb_hist_entries = 0; // number of saved hist entries in this jsh session
@@ -78,7 +79,16 @@ int main(int argc, char **argv) {
     signal(SIGINT, sig_int_handler);
 
     // TODO ignore SIGSTOP (^Z) --> "The system shall not allow a process to catch the signals SIGKILL and SIGSTOP." :/
-    //signal(SIGSTOP, SIG_IGN);
+//    signal(SIGSTOP, SIG_IGN);
+//TODO see msh source init function
+//TODO see https://en.wikipedia.org/wiki/Job_control_%28Unix%29#Implementation
+                /*signal(SIGQUIT, SIG_IGN);
+                signal(SIGTTOU, SIG_IGN);
+                signal(SIGTTIN, SIG_IGN);*/
+                signal(SIGTSTP,  SIG_IGN);
+                //signal(SIGINT, SIG_IGN);
+                //signal(SIGCHLD, &signalHandler_child);
+
 
     // after receiving SIGINT, program is continued on the next line
     if (sigsetjmp(ctrlc_buf, 1) == 0)
@@ -450,6 +460,10 @@ Typically (as in always) a shell will also handle SIGCHLD, which is the way the 
  * tells GNU readline to diplay a prompt on a newline
  */
 void sig_int_handler(int signo) {
-    rl_crlf();                  // set cursor to newline
-    siglongjmp(ctrlc_buf, 1);   // jump back to main loop
+    // if ^C entered in child process --> also sent to parent (jsh) process
+    // --> only clear the prompt when not waiting for an executing child (allow the waitpid to return)
+    if (!WAITING_FOR_CHILD) {
+        rl_crlf();                  // set cursor to newline
+        siglongjmp(ctrlc_buf, 1);   // jump back to main loop
+    }
 }
