@@ -458,7 +458,7 @@ int execute(comd *pipeline, int npipes) {
         }
     }
     WAITING_FOR_CHILD = false;
-        
+    
     // free() the comd list
     freecomdlist(pipeline);
     
