@@ -40,6 +40,7 @@ char *readcmd(int status);
 int is_built_in(comd*);
 int parse_built_in(comd*, int);
 void sig_int_handler(int sig);
+void sig_child_handler(int signo);
 
 // ########## global variables ##########
 int DEBUG = 1;
@@ -87,7 +88,7 @@ int main(int argc, char **argv) {
                 signal(SIGTTIN, SIG_IGN);*/
                 signal(SIGTSTP,  SIG_IGN);
                 //signal(SIGINT, SIG_IGN);
-                //signal(SIGCHLD, &signalHandler_child);
+                signal(SIGCHLD, &sig_child_handler);
 
 
     // after receiving SIGINT, program is continued on the next line
@@ -415,13 +416,12 @@ int parse_built_in(comd *comd, int index) {
         /* TODO
         case JOBS:
             CHK_ARGC("jobs", 0);
-            printjobs();
+            printbgjobs();
             return EXIT_SUCCESS;
             break;
         case BG:
             CHK_ARGC("fg", 1);
-            add to list
-            send SIGCONT
+            continuebgjob(pid_t)
 
             return SUCCESS;
             break;
@@ -429,8 +429,13 @@ int parse_built_in(comd *comd, int index) {
             CHK_ARGC("fg", 1);
             remove from list
             send SIGCONT
-            
-            wait(pid, &status);
+   
+        waitpid(-1, &statuschild, WUNTRACED); // wait for either completion or SIGSTOP (^Z) delivery
+        if (WIFSTOPPED(statuschild)) {
+            printdebug("child was stopped by signal no %d", WSTOPSIG(statuschild));
+            addbgjob(pid_t);
+        }
+  
             return status;
             
             //TODO http://programmers.stackexchange.com/questions/162940/how-do-i-implement-the-bg-and-fg-commands-functionaliity-in-my-custom-unix-s
@@ -465,5 +470,20 @@ void sig_int_handler(int signo) {
     if (!WAITING_FOR_CHILD) {
         rl_crlf();                  // set cursor to newline
         siglongjmp(ctrlc_buf, 1);   // jump back to main loop
+    }
+}
+/*
+ * TODO
+ */
+void sig_child_handler(int signo) {
+    pid_t kidpid;
+    int status;
+    
+    printdebug("sig_child_handler with signo %d", signo);
+
+    while ((kidpid = waitpid(-1, &status, WNOHANG)) > 0) {
+         //TODO removebgjob(kidpid)
+         printf("Child with pid %ld terminated with status %d\n", kidpid, status);
+         //TODO [1]  + done       sleep 2
     }
 }

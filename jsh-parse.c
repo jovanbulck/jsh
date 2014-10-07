@@ -438,7 +438,7 @@ int execute(comd *pipeline, int npipes) {
         CLOSE_PREV_PIPE
         /* TODO
         if (cur->on_bg)
-            bg_pid_list.add(pid);   // global linked list (in new c/h file) that is also used by the built_ins 'jobs', 'fg' and 'bg'
+            addbgjob(pid_t);
         else
             wait_pid_list.add(pid);
         */
@@ -448,17 +448,16 @@ int execute(comd *pipeline, int npipes) {
     // wait for children completion TODO
     int statuschild = 0;
     WAITING_FOR_CHILD = true;
-    for (k = 0; k < nbchildren; k++) {
+    for (k = 0; k < nbchildren; k++) { //TODO     for each pid in wait_pid_list do
     //TODO http://stackoverflow.com/questions/14034895/waitpid-blocking-when-it-shouldnt
         waitpid(-1, &statuschild, WUNTRACED); // wait for either completion or SIGSTOP (^Z) delivery
         printdebug("waiting completed: child %d of %d", k+1, nbchildren);
+        if (WIFSTOPPED(statuschild)) {
+            printdebug("child was stopped by signal no %d", WSTOPSIG(statuschild));
+            //TODO addbgjob(pid_t);
+        }
     }
     WAITING_FOR_CHILD = false;
-        
-    /* TODO
-    for each pid in wait_pid_list do
-        waitpid(pid, &statuschild, 0);
-    */
         
     // free() the comd list
     freecomdlist(pipeline);

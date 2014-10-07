@@ -38,6 +38,7 @@ The following grammar is currently supported.
               expr ; expr
               expr && expr
               expr || expr
+              cmd &               *TODO not yet implemented; & only valid at end of cmd
               cmd
 
  cmd    :=    cmd | cmd           // cmd is the unit of truth value evaluation
@@ -45,7 +46,6 @@ The following grammar is currently supported.
               cmd 2> path
               cmd > path
               cmd < path
-              cmd &               *TODO not yet implemented
               comd
 
  comd   :=    comd option         // comd is the unit of fork / built_in
