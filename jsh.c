@@ -474,6 +474,7 @@ void sig_int_handler(int signo) {
 }
 /*
  * TODO
+ * see also http://stackoverflow.com/questions/1508488/difference-between-process-group-id-and-job-id-in-unix
  */
 void sig_child_handler(int signo) {
     pid_t kidpid;
