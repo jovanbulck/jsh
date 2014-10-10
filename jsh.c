@@ -285,23 +285,25 @@ char *readcmd(int status) {
     buf = readline(getprompt(status));  //TODO fall back to getline() when non-interactive...
     printdebug("You entered: '%s'", buf);
 
-    // do history expansion
-    char *expansion;
-    if(history_expand(buf, &expansion) != -1) {
-        printdebug("readcmd: cmd '%s' expanded to '%s'", buf, expansion);
-        free(buf); // free unexpanded version
-        buf = expansion; // point to expanded cmd
-    } else
-        printerrno("readcmd: cmd expansion failed for '%s'", buf);
-    
-    // If the line has any text in it, save it to history and resolve aliases
+    // If the line has any text in it: expand history, save it to history and resolve aliases
     //  (readline returns NULL iff EOF on a blank line)
     if (buf != NULL && *buf) {
+        // do history expansion
+        char *expansion = '\0';
+        if (history_expand(buf, &expansion) != -1) {
+            printdebug("readcmd: cmd '%s' expanded to '%s'", buf, expansion);
+            free(buf); // free unexpanded version
+            buf = expansion; // point to expanded cmd
+        }
+        else {
+            printerr("readcmd: history expansion failed for '%s': '%s'", buf, expansion);
+            free(expansion);
+        }
         add_history(buf);
         nb_hist_entries++;
-        char *ret = resolvealiases(buf); //TODO
-        free(buf);
-        buf = ret;
+        char *ret = resolvealiases(buf);
+        free(buf); // free unresolved version
+        buf = ret; // point to resolved cmd
     }
     return buf;
 }
