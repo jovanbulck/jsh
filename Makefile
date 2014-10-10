@@ -3,7 +3,7 @@ UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S), Darwin) # Add library folder for Mac OS X readline (installed with homebrew)
 	LINK := gcc -g jsh-common.o jsh.o alias.o -o jsh -L/usr/local/lib/ -lreadline
 else
-	LINK := gcc -g jsh-common.o jsh.o alias.o -o jsh -lreadline
+	LINK := gcc -g jsh-common.o jsh.o alias.o -o jsh -lreadline -lncurses
 endif
 
 all: jsh-common alias jsh link
