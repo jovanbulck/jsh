@@ -90,12 +90,14 @@ char *gethome() {
 }
 
 /*
- * parsefile: wrapper for parsestream(), opening and closing the file at the provided path
+ * parsefile: wrapper for parsestream(), opening and closing the file at the provided path.
+ *  @arg errmsg: true  = print an error message if opening the file failed
+ *               false = exit silently if opening the file failed
  */
-void parsefile(char *path, void (*fct)(char*)) {
+void parsefile(char *path, void (*fct)(char*), bool errmsg) {
     FILE *file = fopen(path, "r");
     if (file == NULL) {
-        printerrno("opening of file '%s' failed", path);
+        if (errmsg) printerrno("opening of file '%s' failed", path);
         return;
     }
     parsestream(file, path, fct);
