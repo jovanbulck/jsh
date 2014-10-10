@@ -43,11 +43,11 @@ void sig_int_handler(int sig);
 void touch_config_files(void);
 
 // ########## global variables ##########
-int DEBUG = 1;
-int COLOR = 1;
-int LOAD_RC = 1;
-int I_AM_FORK = 0;
-int IS_INTERACTIVE;      // initialized in things_todo_at_start; (compiler's 'constant initializer' complaints)
+bool DEBUG = true;
+bool COLOR = true;
+bool LOAD_RC = true;
+bool I_AM_FORK = false;
+bool IS_INTERACTIVE;      // initialized in things_todo_at_start; (compiler's 'constant initializer' complaints)
 int nb_hist_entries = 0; // number of saved hist entries in this jsh session
 sigjmp_buf ctrlc_buf;    // buf used for setjmp/longjmp when SIGINT received
 
@@ -123,19 +123,19 @@ void option(char *str) {
                 printf("the condititions of the GNU General Public License. Try 'jsh --license' for more info.\n");
 		        exit(EXIT_SUCCESS);
 			case 'd':
-				DEBUG = 1;
+				DEBUG = true;
 				break;
 			case 'n':
-				DEBUG = 0;
+				DEBUG = false;
 				break;
 			case 'c':
-				COLOR = 1;
+				COLOR = true;
 				break;
 			case 'o':
-				COLOR = 0;
+				COLOR = false;
 				break;
 		    case 'f':
-		        LOAD_RC = 0;
+		        LOAD_RC = false;
 		        break;
 		    case 'l':
 				printf("jo-shell: A proof-of-concept shell implementation\n");
@@ -225,8 +225,8 @@ void things_todo_at_start(void) {
     
     // print welcome message (without debugging output)
     if (IS_INTERACTIVE) {
-        int temp = DEBUG;
-        DEBUG = 0;        
+        bool temp = DEBUG;
+        DEBUG = false;        
         char * path = concat(3, gethome(), "/", LOGIN_FILE);
         parsefile(path, (void (*)(char*)) &printf, false);
         free(path);
