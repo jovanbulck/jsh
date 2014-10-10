@@ -91,7 +91,7 @@ void printdebug(const char*, ...);
 void printinfo(const char*, ...);
 void textcolor(FILE*, int, int);
 
-void parsefile(char*, void (*f)(char*));
+void parsefile(char*, void (*f)(char*), bool);
 void parsestream(FILE*, char*, void (*f)(char*));
 
 int string_cmp(const void*, const void*);
