@@ -40,7 +40,7 @@ char *readcmd(int status);
 int is_built_in(comd*);
 int parse_built_in(comd*, int);
 void sig_int_handler(int sig);
-void create_config_files(void);
+void touch_config_files(void);
 
 // ########## global variables ##########
 int DEBUG = 1;
@@ -200,7 +200,7 @@ void things_todo_at_start(void) {
     // evaluate once at startup; to maintain for forked children in a pipeline
     IS_INTERACTIVE = (isatty(STDIN_FILENO) && isatty(STDOUT_FILENO));
 
-    create_config_files();
+    touch_config_files();
     
     // load history file if any
     char * path = concat(3, gethome(), "/", HISTFILE);
@@ -236,29 +236,23 @@ void things_todo_at_start(void) {
 }
 
 /*
- * TODO doc
- *  look for the jsh config files, if not found create new empty ones
+ * create_config_files: looks for the jsh config files;
+ *  if not found creates new empty ones (rw-rw-rw; will be combined with current umask)
  */
-void create_config_files(void) {
-    #define chk_file(name) \
-        FILE name = fopen(concat(3, gethome(), "/", name), "r"); \
-        if (name == NULL) { \
-            printdebug("creating file %s", name);
-            
+void touch_config_files(void) {
+    #define CREATE_F(name) \
+        fd = open(concat(3, gethome(), "/", name), O_RDWR | O_CREAT, 0666); \
+        if (fd >= 0) { \
+            printdebug("opened file %s", name); \
+            close(fd); \
+        } \
+        else \
+            printdebug("couldn't open/create file '%s': %s", name, strerror(errno));    
     
-    
-    FILE *jshrc = fopen(concat(3, gethome(), "/", RCFILE), "r");
-    
-    
-    FILE *jsh_history = fopen(concat(3, gethome(), "/", HISTFILE), "r");
-    FILE *jsh_login = fopen(concat(3, gethome(), "/", LOGIN_FILE), "r");
-    
-    if (file == NULL && errmsg) {
-        printerrno("opening of file '%s' failed", path);
-        return;
-    }
-    parsestream(file, path, fct);
-    fclose(file);
+    int fd;
+    CREATE_F(HISTFILE);
+    CREATE_F(RCFILE);
+    CREATE_F(LOGIN_FILE);
 }
 
 /*
