@@ -216,9 +216,9 @@ void things_todo_at_start(void) {
 
     // load history file if any
     char * path = concat(3, gethome(), "/", HISTFILE);
-    if (read_history(path) == 0)
+    if (read_history(path) == 0) 
         printdebug("reading history from %s succeeded", path);
-    else
+    else 
         printerrno("reading history from %s failed", path);
     free(path);
     
@@ -271,8 +271,10 @@ void things_todo_at_exit(void) {
 char* getprompt(int status) {
     static char prompt[MAX_PROMPT_LENGTH] = "";  // static: hold between function calls (because return value)
     if (IS_INTERACTIVE) {
-        char hostname[HOST_NAME_MAX];
-        gethostname(hostname, HOST_NAME_MAX);
+        int hostlen = sysconf(_SC_HOST_NAME_MAX)+1; // Plus one for null terminate
+        char hostname[hostlen];
+        gethostname(hostname, hostlen);
+        hostname[hostlen-1] = '\0'; // Always null-terminate
         char *cwd = getcwd(NULL,0); //TODO portability: this is GNU libc specific... + errchk
         snprintf(prompt, MAX_PROMPT_LENGTH - 2, "%s@%s[%d]:%s", getenv("USER"), hostname, status, cwd);
         strcat(prompt, "$ ");
@@ -328,7 +330,7 @@ int parse_built_in(comd *comd, int index) {
     #if ASSERT
         assert(strcmp(*comd->cmd, built_ins[index]) == 0);
     #endif
-    
+
     //######## common macro definitions ###########
     #define CHK_ARGC(cmd, argc) \
         if (comd->length != argc+1) { \

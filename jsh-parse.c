@@ -484,7 +484,7 @@ int execute(comd *pipeline, int npipes) {
         exit(EXIT_FAILURE);
     }
     return rv;
-    /*
+    
     if (WIFSTOPPED(status))
         printf("Child received SIGTSTP");
     */

@@ -87,6 +87,7 @@ extern bool WAITING_FOR_CHILD;
 
 // common function definitions
 void printerr(const char*, ...);
+void printerrno(const char *format, ...);
 void printdebug(const char*, ...);
 void printinfo(const char*, ...);
 void textcolor(FILE*, int, int);
