@@ -185,8 +185,9 @@ bool is_valid_alias(struct alias *alias, char *context, int i) {
         before--;
         nb_before--;
     }
+    
     bool before_ok = ( nb_before == 0 || (*(before-1) == '|' || *(before-1) == ';') || 
-        ((nb_before >= 2 && strncmp(before-2, "&&", 2)) == 0 || strncmp(before-2, "||", 2) == 0));
+        (nb_before >= 2 && (strncmp(before-2, "&&", 2) == 0 || strncmp(before-2, "||", 2) == 0)));
     
     return before_ok;
 }
