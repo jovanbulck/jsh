@@ -96,8 +96,8 @@ char *gethome() {
  */
 void parsefile(char *path, void (*fct)(char*), bool errmsg) {
     FILE *file = fopen(path, "r");
-    if (file == NULL && errmsg) {
-        printerrno("opening of file '%s' failed", path);
+    if (file == NULL) {
+        if (errmsg) printerrno("opening of file '%s' failed", path);
         return;
     }
     parsestream(file, path, fct);

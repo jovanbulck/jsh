@@ -241,14 +241,17 @@ void things_todo_at_start(void) {
  */
 void touch_config_files(void) {
     #define CREATE_F(name) \
-        fd = open(concat(3, gethome(), "/", name), O_RDWR | O_CREAT, 0666); \
+        path = concat(3, gethome(), "/", name); \
+        fd = open(path, O_RDWR | O_CREAT, 0666); \
         if (fd >= 0) { \
             printdebug("opened file %s", name); \
             close(fd); \
         } \
         else \
-            printdebug("couldn't open/create file '%s': %s", name, strerror(errno));    
+            printdebug("couldn't open/create file '%s': %s", name, strerror(errno)); \
+        free(path);
     
+    char* path;
     int fd;
     CREATE_F(HISTFILE);
     CREATE_F(RCFILE);
