@@ -104,7 +104,7 @@ void option(char *str) {
 					return optionfull(str);
 				break; // else: ignore
 			case 'h':
-				printf("jo-shell: A proof-of-concept shell implementation\n");
+				printf("jo-shell: A proof-of-concept UNIX shell implementation in C\n");
 				printf("\nRecognized options:\n");
 				printf("-h, --help\tdisplay this help message\n");
 				printf("-d, --debug\tturn printing of debug messages on\n");
@@ -118,7 +118,7 @@ void option(char *str) {
 		        printf("~/%s\tfile containing the welcome message auto printed at login of an interactive session\n", LOGIN_FILE);
 		        printf("~/%s\tfile containing the command history auto loaded and saved at login/logout\n", HISTFILE);
 		        printf("\nReport bugs to: jo.vanbulck@student.kuleuven.be\n");
-		        printf("jsh homepage: <https://todo.github.com/>\n");
+		        printf("jsh homepage: <https://github.com/jovanbulck/jo-shell>\n");
 		        printf("This program is free software, and you are welcome to redistribute it under\n");
                 printf("the condititions of the GNU General Public License. Try 'jsh --license' for more info.\n");
 		        exit(EXIT_SUCCESS);
