@@ -27,6 +27,7 @@
 
 // ########## macro definitions ##########
 #define MAX_PROMPT_LENGTH       100     // maximum length of the displayed prompt
+#define MAX_DIR_LENGTH          25
 #define HISTFILE                ".jsh_history"
 #define RCFILE                  ".jshrc"
 #define LOGIN_FILE              ".jsh_login"
@@ -286,7 +287,9 @@ char* getprompt(int status) {
         gethostname(hostname, hostlen);
         hostname[hostlen-1] = '\0'; // Always null-terminate
         char *cwd = getcwd(NULL,0); //TODO portability: this is GNU libc specific... + errchk
-        snprintf(prompt, MAX_PROMPT_LENGTH - 2, "%s@%s[%d]:%s", getenv("USER"), hostname, status, cwd);
+        int cwdlen = strlen(cwd);
+        char *ptr = strchr(cwd + ((MAX_DIR_LENGTH < cwdlen) ? cwdlen - MAX_DIR_LENGTH : 0), '/');
+	snprintf(prompt, MAX_PROMPT_LENGTH - 2, "%s@%s[%d]:%s", getenv("USER"), hostname, status, ptr);
         strcat(prompt, "$ ");
     }
     return prompt;
