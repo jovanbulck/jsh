@@ -280,6 +280,8 @@ void things_todo_at_exit(void) {
  *            the returned string is truncated to MAX_PROMPT_LENGTH TODO smarter truncation...
  */
 char* getprompt(int status) {
+    char *user_prompt_string = "%u@%h[%s]:%d$ ";
+    
     static char prompt[MAX_PROMPT_LENGTH] = "";  // static: hold between function calls (because return value)
     if (IS_INTERACTIVE) {
         int hostlen = sysconf(_SC_HOST_NAME_MAX)+1; // Plus one for null terminate
@@ -289,9 +291,27 @@ char* getprompt(int status) {
         char *cwd = getcwd(NULL,0); //TODO portability: this is GNU libc specific... + errchk
         int cwdlen = strlen(cwd);
         char *ptr = strchr(cwd + ((MAX_DIR_LENGTH < cwdlen) ? cwdlen - MAX_DIR_LENGTH : 0), '/');
-	snprintf(prompt, MAX_PROMPT_LENGTH - 2, "%s@%s[%d]:%s", getenv("USER"), hostname, status, (ptr != 0) ? ptr : cwd + cwdlen - MAX_DIR_LENGTH);
-        strcat(prompt, "$ ");
+        //snprintf(prompt, MAX_PROMPT_LENGTH - 2, "%s@%s[%d]:%s", getenv("USER"), hostname, status, (ptr != 0) ? ptr : cwd + cwdlen - MAX_DIR_LENGTH);
+        int i;
+        for( i = 0; i < strlen(user_prompt_string); i++){
+            if (user_prompt_string[i] != '%')
+                printf("%c", user_prompt_string[i]);
+            else {
+                i++;
+                switch (user_prompt_string[i]){
+                case 'u': printf("%s", getenv("USER"));
+                    break;
+                case 'h': printf("%s", hostname);
+                    break;
+                case 's': printf("%d", status);
+                    break;
+                case 'd': printf("%s", (ptr != 0) ? ptr : cwd + cwdlen - MAX_DIR_LENGTH);
+                    break;
+                }
+            }
+        }
     }
+
     return prompt;
 }
 
