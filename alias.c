@@ -27,11 +27,11 @@ struct alias {
     char *value;
     struct alias *next;
 };
-typedef struct alias ALIAS;
+//typedef struct alias ALIAS;
 //#define CREATE_ALIAS(k,v) (struct alias) {k, v}
 
-ALIAS *head = NULL;
-ALIAS *tail = NULL;
+struct alias *head = NULL;
+struct alias *tail = NULL;
 
 int total_alias_val_length = 0;
 
@@ -49,7 +49,7 @@ int alias(char *k, char *v) {
     
     // alloc memory for the new alias struct and its key
     // note: *val has already been alloced by the resolvealiases() call
-    ALIAS *new = malloc(sizeof(alias)); //TODO chkerr
+    struct alias *new = malloc(sizeof(struct alias)); //TODO chkerr
     new->next = NULL;
     new->key = malloc(sizeof (char) * keylength+1);
     
@@ -71,24 +71,31 @@ int alias(char *k, char *v) {
 }
 
 /*
-TODO doc
-*/
+ * unalias: unaliases a specified key
+ *  returns EXIT_SUCCESS if the specified key was found; else prints an error message and returns EXIT_FAILURE 
+ */
 int unalias(char *key) {
-    ALIAS *cur = head;
-    ALIAS *prev = NULL;
-    bool found = false;
-    while (cur != NULL && !found) {
+    struct alias *cur = head;
+    struct alias *prev = NULL;
+    while (cur != NULL) {
         if (strncmp(cur->key, key, MAX_ALIAS_KEY_LENGTH) == 0) {
-            found = true;
+            // re-organize the linked list
             if (prev)
                 prev->next = cur->next;
             else
-                cur = NULL;
+                head = cur->next;
+            if (cur == tail)
+                tail = prev;
+            // free the unalised alias and return
+            total_alias_val_length -= strnlen(cur->value, MAX_ALIAS_VAL_LENGTH);
+            free(cur);
+            return EXIT_SUCCESS;;
         }
         prev = cur;
         cur = cur->next;
     }
-    return EXIT_SUCCESS;
+    printerr("unalias: no such alias key: %s", key);
+    return EXIT_FAILURE;
 }
 
 /*
@@ -96,7 +103,7 @@ int unalias(char *key) {
  * returns EXIT_SUCCESS
  */
 int printaliases() {
-    ALIAS *cur = head;
+    struct alias *cur = head;
     while(cur != NULL) {
         printf("alias %s = '%s'\n", cur->key, cur->value);
         cur = cur->next;
@@ -115,7 +122,7 @@ int printaliases() {
  *                                                                                    alt syntax: alias ls "ls --color=auto"
  */
 char *resolvealiases(char *s) {
-    bool is_valid_alias(ALIAS*, char*, int); // helper function def
+    bool is_valid_alias(struct alias*, char*, int); // helper function def
 
     // alloc enough space for the return value
     int maxsize = strlen(s) + total_alias_val_length; 
@@ -123,7 +130,7 @@ char *resolvealiases(char *s) {
     strcpy(ret, s);
     
     // find all alias key substrings, replacing them if valid in context
-    ALIAS *cur;
+    struct alias *cur;
     char *p, *str; // p is pointer to matched substring; str is pointer to not-yet-checked string
     for (cur = head; cur != NULL; cur = cur->next)
         for (str = ret; (p = strstr(str, cur->key)) != NULL;) {
@@ -154,7 +161,7 @@ char *resolvealiases(char *s) {
  *  @param context: the context string where the alias is matched
  *  @param i: the index in the context string where the alias is matched: context+i equals alias->key
  */
-bool is_valid_alias(ALIAS *alias, char *context, int i) {
+bool is_valid_alias(struct alias *alias, char *context, int i) {
     #if ASSERT
         assert(strncmp(context+i, alias->key, strlen(alias->key)) == 0);
     #endif
@@ -185,14 +192,15 @@ bool is_valid_alias(ALIAS *alias, char *context, int i) {
         before--;
         nb_before--;
     }
+    
     bool before_ok = ( nb_before == 0 || (*(before-1) == '|' || *(before-1) == ';') || 
-        (nb_before >= 2 && strncmp(before-2, "&&", 2) == 0 || strncmp(before-2, "||", 2) == 0));
+        (nb_before >= 2 && (strncmp(before-2, "&&", 2) == 0 || strncmp(before-2, "||", 2) == 0)));
     
     return before_ok;
 }
 
 /*
-bool is_valid_alias(ALIAS *alias, char *context) {
+bool is_valid_alias(struct alias *alias, char *context) {
     if (*context == '\0' || *alias->key == '~')
         return true;
     

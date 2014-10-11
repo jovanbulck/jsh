@@ -36,7 +36,7 @@
 #include <stdbool.h>
 
 // ########## common macro definitions #########
-#define ASSERT      1                    // whether or not to include the assert statements in the pre-compilation phase
+#define ASSERT                  true    // whether or not to include the assert statements in the pre-compilation phase
 #define MAX_FILE_LINE_LENGTH    200     // the max nb of chars per line in a file to parse
 
 #define REDIRECT_STR(fd1, fd2) \
@@ -79,22 +79,23 @@
 #define NONE                "\033[0m"       // to flush the previous property
 
 // common global variables
-extern int DEBUG;
-extern int COLOR;
-extern int I_AM_FORK;               // whether or not the current process is a fork, i.e. child process
-extern int IS_INTERACTIVE;
+extern bool DEBUG;
+extern bool COLOR;
+extern bool I_AM_FORK;               // whether or not the current process is a fork, i.e. child process
+extern bool IS_INTERACTIVE;
 
 // common function definitions
 void printerr(const char*, ...);
+void printerrno(const char *format, ...);
 void printdebug(const char*, ...);
 void printinfo(const char*, ...);
 void textcolor(FILE*, int, int);
 
-void parsefile(char*, void (*f)(char*));
+void parsefile(char*, void (*f)(char*), bool);
 void parsestream(FILE*, char*, void (*f)(char*));
 
 int string_cmp(const void*, const void*);
-int is_sorted(void*, size_t, size_t, int (*compar)(const void *, const void *));
+bool is_sorted(void*, size_t, size_t, int (*compar)(const void *, const void *));
 char *gethome();
 char* concat(int, ...);
 // TODO malloc wrapper -- gracious

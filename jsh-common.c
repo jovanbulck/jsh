@@ -90,12 +90,14 @@ char *gethome() {
 }
 
 /*
- * parsefile: wrapper for parsestream(), opening and closing the file at the provided path
+ * parsefile: wrapper for parsestream(), opening and closing the file at the provided path.
+ *  @arg errmsg: true  = print an error message if opening the file failed
+ *               false = exit silently if opening the file failed
  */
-void parsefile(char *path, void (*fct)(char*)) {
+void parsefile(char *path, void (*fct)(char*), bool errmsg) {
     FILE *file = fopen(path, "r");
     if (file == NULL) {
-        printerrno("opening of file '%s' failed", path);
+        if (errmsg) printerrno("opening of file '%s' failed", path);
         return;
     }
     parsestream(file, path, fct);
@@ -144,17 +146,17 @@ int string_cmp(const void *a, const void *b) {
 
 
 /*
- * is_sorted: returns 0 iff the provided array a isn't sorted according to the provided comparison function,
- *  else returns positive value; time complexity O(n)
+ * is_sorted: returns false iff the provided array a isn't sorted according to the provided comparison function,
+ *  else returns true; time complexity O(n)
  */
-int is_sorted(void *a, size_t n, size_t el_size, int (*compar)(const void *, const void *)) {
+bool is_sorted(void *a, size_t n, size_t el_size, int (*compar)(const void *, const void *)) {
     int i;
     for (i = 0; i < n - 1; i += el_size) {
         int rv = compar((a + i), (a + i + el_size));
         if (rv >= 0)
-            return 0;
+            return false;
     }
-    return 1;
+    return true;
 }
 
 
