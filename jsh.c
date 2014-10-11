@@ -289,7 +289,7 @@ char* getprompt(int status) {
         char *cwd = getcwd(NULL,0); //TODO portability: this is GNU libc specific... + errchk
         int cwdlen = strlen(cwd);
         char *ptr = strchr(cwd + ((MAX_DIR_LENGTH < cwdlen) ? cwdlen - MAX_DIR_LENGTH : 0), '/');
-	snprintf(prompt, MAX_PROMPT_LENGTH - 2, "%s@%s[%d]:%s", getenv("USER"), hostname, status, ptr);
+	snprintf(prompt, MAX_PROMPT_LENGTH - 2, "%s@%s[%d]:%s", getenv("USER"), hostname, status, (ptr != 0) ? ptr : cwd + cwdlen - MAX_DIR_LENGTH);
         strcat(prompt, "$ ");
     }
     return prompt;
