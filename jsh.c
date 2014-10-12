@@ -51,6 +51,7 @@ bool I_AM_FORK = false;
 bool IS_INTERACTIVE;      // initialized in things_todo_at_start; (compiler's 'constant initializer' complaints)
 int nb_hist_entries = 0; // number of saved hist entries in this jsh session
 sigjmp_buf ctrlc_buf;    // buf used for setjmp/longjmp when SIGINT received
+char *user_prompt_string = "%u@%h[%s]:%d$ ";    // TODO default value doc
 
 /*
  * built_ins[] = array of built_in cmd names; should be sorted with 'qsort(built_ins, nb_built_ins, sizeof(char*), string_cmp);'
@@ -266,7 +267,7 @@ void things_todo_at_exit(void) {
     if (I_AM_FORK)
         return; //ignore exiting of child processes (e.g. failed fork execv)
     
-    char * path = concat(3, gethome(), "/", HISTFILE);
+    char * path = concat(3, gethome(), "/", HISTFILE);  //TODO check this uses malloc??? fail return status?
     if (append_history(nb_hist_entries, path) == 0)
         printdebug("appending %d history entries to %s succeeded", nb_hist_entries, path);
     else
@@ -280,38 +281,61 @@ void things_todo_at_exit(void) {
  *            the returned string is truncated to MAX_PROMPT_LENGTH TODO smarter truncation...
  */
 char* getprompt(int status) {
-    char *user_prompt_string = "%u@%h[%s]:%d$ ";
+    if (!IS_INTERACTIVE)
+        return "";
     
+    // check length of string to concat; abort to avoid an overflow
+    #define CHK_LEN(str) \
+        if ((strlen(prompt) + strlen(str)) > MAX_PROMPT_LENGTH) { \
+            printdebug("Prompt too long: not concatting '%s'", str); \
+            return prompt; \
+        }
     static char prompt[MAX_PROMPT_LENGTH] = "";  // static: hold between function calls (because return value)
-    if (IS_INTERACTIVE) {
-        int hostlen = sysconf(_SC_HOST_NAME_MAX)+1; // Plus one for null terminate
-        char hostname[hostlen];
-        gethostname(hostname, hostlen);
-        hostname[hostlen-1] = '\0'; // Always null-terminate
-        char *cwd = getcwd(NULL,0); //TODO portability: this is GNU libc specific... + errchk
-        int cwdlen = strlen(cwd);
-        char *ptr = strchr(cwd + ((MAX_DIR_LENGTH < cwdlen) ? cwdlen - MAX_DIR_LENGTH : 0), '/');
-        //snprintf(prompt, MAX_PROMPT_LENGTH - 2, "%s@%s[%d]:%s", getenv("USER"), hostname, status, (ptr != 0) ? ptr : cwd + cwdlen - MAX_DIR_LENGTH);
-        int i;
-        for( i = 0; i < strlen(user_prompt_string); i++){
-            if (user_prompt_string[i] != '%')
-                printf("%c", user_prompt_string[i]);
-            else {
-                i++;
-                switch (user_prompt_string[i]){
-                case 'u': printf("%s", getenv("USER"));
+    
+    // calc the hostname TODO in switch??
+    int hostlen = sysconf(_SC_HOST_NAME_MAX)+1; // Plus one for null terminate
+    char hostname[hostlen];
+    gethostname(hostname, hostlen);
+    hostname[hostlen-1] = '\0'; // Always null-terminate    
+    
+    // calc the directory                
+    char *cwd = getcwd(NULL, 0); //TODO portability: this is GNU libc specific... + errchk
+    int cwdlen = strlen(cwd);
+    char *ptr = strchr(cwd + ((MAX_DIR_LENGTH < cwdlen) ? cwdlen - MAX_DIR_LENGTH : 0), '/');   // TODO max_Dir_l ??
+    
+    prompt[0] = '\0';
+    char *str = "";
+    int i, len = strlen(user_prompt_string);
+    for( i = 0; i < len; i++){
+        if (user_prompt_string[i] != '%')
+            sprintf(str, "%c", user_prompt_string[i]);
+        else {
+            i++; // potentially overread the '\0' char
+            switch (user_prompt_string[i]) {
+                case 'u':
+                    str = getenv("USER");
                     break;
-                case 'h': printf("%s", hostname);
+                case 'h':
+                    str = hostname;
                     break;
-                case 's': printf("%d", status);
+                case 's':
+                    sprintf(str, "%d", status);
                     break;
-                case 'd': printf("%s", (ptr != 0) ? ptr : cwd + cwdlen - MAX_DIR_LENGTH);
+                case 'd':
+                    str = ((ptr != NULL) ? ptr : cwd + cwdlen - MAX_DIR_LENGTH);
                     break;
-                }
+                case '%':
+                    str = "%";
+                    break;
+                default:
+                    printerr("unrecognized prompt option '%%%c'", user_prompt_string[i]);
+                    str = "";
+                    break;
             }
         }
+        CHK_LEN(str);
+        strcat(prompt, str);
     }
-
     return prompt;
 }
 
