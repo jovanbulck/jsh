@@ -176,7 +176,7 @@ int parseexpr(char *expr) {
     /**** 3. BASE: expr is a cmd ****/
     char **curcmd;
     length = splitexpr(expr, &curcmd);      // split the expression, using space as a delimiter
-    rv = parsecmd(curcmd, length);
+    rv = parsecmd(curcmd, length);          // TODO rv doffice EXIT_FAILURE if '&' 
     printdebug("parseexpr: expr evaluated with return value %d", rv);
     return rv;
 }
@@ -349,16 +349,11 @@ int parsecmd(char **cmd, int length) {
             cmd[i++] = NULL;
             pipeline_tail->outf = cmd[i];
         }
-        /* TODO
-        else if (*cmd[i] == '&') {
-            cmd[i]= ' ';
-            // evt valid context checken (only at end?, not between pipes?)
-            pipeline_tail->on_bg = true;
-        }
-        */
     }
     // base: pipeline of comds
-    return execute(pipeline_head, nbpipes);
+    // TODO check whether it ends with '&' 
+    // bool on_bg = (*cmd[length-1] == '&');
+    return execute(pipeline_head, nbpipes); // TODO exra arg on_bg
 }
 
 /*
@@ -369,7 +364,7 @@ int parsecmd(char **cmd, int length) {
  * Note: - pipe redirecting has priority over explicit redirecting: 
  *          e.g. ls > out | less : ls stdout will *only* be directed to less
  */
-int execute(comd *pipeline, int npipes) {
+int execute(comd *pipeline, int npipes) {   //TODO on_bg arg
     int i, pfds[npipes*2];
     // 0. create n pipes and store the file descriptors
     for (i = 0; i < npipes; i++)
@@ -417,7 +412,7 @@ int execute(comd *pipeline, int npipes) {
         else if (pid == 0) {
             // ######## child process execution: redirect streams, setup pipe and execv ########
             printdebug("fork: now executing '%s'", *cur->cmd);
-            I_AM_FORK = 1;
+            I_AM_FORK = true;
             
             /* TODO see msh source code
             signal(SIGCHLD, &signalHandler_child);
@@ -436,25 +431,26 @@ int execute(comd *pipeline, int npipes) {
         }
         // ######## parent process execution: continue loop ########
         CLOSE_PREV_PIPE
-        /* TODO
-        if (cur->on_bg)
-            addbgjob(pid_t);
-        else
-            wait_pid_list.add(pid);
-        */
     }
     // ######## continued parent process execution: wait for children completion ########
     CLOSE_ALL_PIPES; // close all remaining open pipe fds; no longer needed
-    // wait for children completion TODO
+    // wait for children completion TODO iff !on_bg
+    /*
+    if (on_bg)
+        int job_id = bg_job_list.add(pipeline);
+        printinfo("[%d] on background '%s'", job_id, get_full_pipename_name(pipeline));
+        return EXIT_FAILURE;    // don't wait for completion of the pipeline
+    */
     int statuschild = 0;
     WAITING_FOR_CHILD = true;
-    for (k = 0; k < nbchildren; k++) { //TODO     for each pid in wait_pid_list do
+    for (k = 0; k < nbchildren; k++) {
     //TODO http://stackoverflow.com/questions/14034895/waitpid-blocking-when-it-shouldnt
         waitpid(-1, &statuschild, WUNTRACED); // wait for either completion or SIGSTOP (^Z) delivery
         printdebug("waiting completed: child %d of %d", k+1, nbchildren);
         if (WIFSTOPPED(statuschild)) {
-            printdebug("child was stopped by signal no %d", WSTOPSIG(statuschild));
-            //TODO addbgjob(pid_t);
+            printdebug("child was stopped (^Z) by signal no %d", WSTOPSIG(statuschild));
+            //TODO addbgjob(pid_t); --> TODO EXIT_FAILURE
+            // TODO add the *whole pipeline* as a job (!) e.g. "cat | grep jo" and then ^Z --> grep also receives SIGSTOP
         }
     }
     WAITING_FOR_CHILD = false;

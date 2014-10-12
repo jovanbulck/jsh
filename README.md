@@ -28,7 +28,14 @@ Supported options:
 The following grammar is currently supported.
 
 ```
- input  :=    expr
+ input  :=    expr &              // input is the unit of explicit backgrounding TODO not possible: eg  sleep 2 && echo done &
+              expr
+
+/*
+TODO:   sleep 2 & ; echo hi
+        built_ins e.g. cd &     --> don't support??
+        brackets won't be supported: e.g. (sleep 2 && ls | grep j) & will resolve to T &
+*/
 
  expr   :=    <space>expr         // expr is a logical combination of cmds
               expr<space>
@@ -38,8 +45,7 @@ The following grammar is currently supported.
               expr ; expr
               expr && expr
               expr || expr
-              cmd &               // cmd is the unit of backgrounding
-              cmd
+              cmd &               // cmd is the unit of suspension: ^Z will be interpreted as EXIT_FAILURE
 
  cmd    :=    cmd | cmd           // cmd is the unit of truth value evaluation
               cmd >> path         // note: pipe redirection get priority over explicit redirection
@@ -48,12 +54,12 @@ The following grammar is currently supported.
               cmd < path
               comd
 
- comd   :=    comd option         // comd is the unit of fork / built_in
-              alias               // note priority: alias > built_in > executable
+ comd   :=    comd option         // comd is the unit of built_in / fork execution
+              alias               // note priority: alias > built_in > executable TODO alias cd "echo hi i am the cd alias" --> also allowed in zsh
               built_in
               executable_path     // relative (using the PATH env var) or absolute
 
- alias  :=    (expr)              // alias is a symbolic linkt to an expr
+ alias  :=    (expr)              // alias is a symbolic link to an expr
 ```
 
 Currenly supported built_ins:
