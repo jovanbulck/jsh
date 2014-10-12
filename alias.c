@@ -71,24 +71,31 @@ int alias(char *k, char *v) {
 }
 
 /*
-TODO doc
-*/
+ * unalias: unaliases a specified key
+ *  returns EXIT_SUCCESS if the specified key was found; else prints an error message and returns EXIT_FAILURE 
+ */
 int unalias(char *key) {
     struct alias *cur = head;
     struct alias *prev = NULL;
-    bool found = false;
-    while (cur != NULL && !found) {
+    while (cur != NULL) {
         if (strncmp(cur->key, key, MAX_ALIAS_KEY_LENGTH) == 0) {
-            found = true;
+            // re-organize the linked list
             if (prev)
                 prev->next = cur->next;
             else
-                cur = NULL;
+                head = cur->next;
+            if (cur == tail)
+                tail = prev;
+            // free the unalised alias and return
+            total_alias_val_length -= strnlen(cur->value, MAX_ALIAS_VAL_LENGTH);
+            free(cur);
+            return EXIT_SUCCESS;;
         }
         prev = cur;
         cur = cur->next;
     }
-    return EXIT_SUCCESS;
+    printerr("unalias: no such alias key: %s", key);
+    return EXIT_FAILURE;
 }
 
 /*
@@ -185,8 +192,9 @@ bool is_valid_alias(struct alias *alias, char *context, int i) {
         before--;
         nb_before--;
     }
+    
     bool before_ok = ( nb_before == 0 || (*(before-1) == '|' || *(before-1) == ';') || 
-        ((nb_before >= 2 && strncmp(before-2, "&&", 2)) == 0 || strncmp(before-2, "||", 2) == 0));
+        (nb_before >= 2 && (strncmp(before-2, "&&", 2) == 0 || strncmp(before-2, "||", 2) == 0)));
     
     return before_ok;
 }
