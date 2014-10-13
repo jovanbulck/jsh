@@ -329,7 +329,7 @@ char* getprompt(int status) {
                     next = "%";
                     break;
                 default:
-                    printerr("unrecognized prompt option '%%%c'", user_prompt_string[i]);
+                    printerr("unrecognized prompt option '%c'", user_prompt_string[i]);
                     next = "";
                     break;
             }
