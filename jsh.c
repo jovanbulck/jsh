@@ -31,6 +31,7 @@
 #define HISTFILE                ".jsh_history"
 #define RCFILE                  ".jshrc"
 #define LOGIN_FILE              ".jsh_login"
+#define DEFAULT_PROMPT          "%u@%h[%s]:%d$ "
 
 // ########## function declarations ##########
 void option(char*);
@@ -51,16 +52,16 @@ bool I_AM_FORK = false;
 bool IS_INTERACTIVE;      // initialized in things_todo_at_start; (compiler's 'constant initializer' complaints)
 int nb_hist_entries = 0; // number of saved hist entries in this jsh session
 sigjmp_buf ctrlc_buf;    // buf used for setjmp/longjmp when SIGINT received
-char *user_prompt_string = "%u@%h[%s]:%d$ ";    // TODO default value doc
+char *user_prompt_string = DEFAULT_PROMPT;
 
 /*
  * built_ins[] = array of built_in cmd names; should be sorted with 'qsort(built_ins, nb_built_ins, sizeof(char*), string_cmp);'
  * built_in enum = value corresponds to index in built_ins[]
  */
 const char *built_ins[] = {"", "F", "T", "alias", "cd", "color", "debug",\
-"exit", "history", "shcat", "unalias"};
+"exit", "history", "prompt", "shcat", "unalias"};
 #define nb_built_ins (sizeof(built_ins)/sizeof(built_ins[0]))
-enum built_in {EMPTY, F, T, ALIAS, CD, CLR, DBG, EXIT, HIST, SHCAT, UNALIAS};
+enum built_in {EMPTY, F, T, ALIAS, CD, CLR, DBG, EXIT, HIST, PROMPT, SHCAT, UNALIAS};
 typedef enum built_in built_in;
 
 /*
@@ -280,35 +281,30 @@ void things_todo_at_exit(void) {
  *            iff IS_INTERACTIVE else the empty string is returned.
  *            the returned string is truncated to MAX_PROMPT_LENGTH TODO smarter truncation...
  */
-char* getprompt(int status) {
+char* getprompt(int status) {    
     if (!IS_INTERACTIVE)
-        return "";
+        return "";    
     
-    // check length of string to concat; abort to avoid an overflow
-    #define CHK_LEN(str) \
-        if ((strlen(prompt) + strlen(str)) > MAX_PROMPT_LENGTH) { \
-            printdebug("Prompt too long: not concatting '%s'", str); \
-            return prompt; \
-        }
     static char prompt[MAX_PROMPT_LENGTH] = "";  // static: hold between function calls (because return value)
     
-    // calc the hostname TODO in switch??
+    // get the hostname
     int hostlen = sysconf(_SC_HOST_NAME_MAX)+1; // Plus one for null terminate
     char hostname[hostlen];
     gethostname(hostname, hostlen);
     hostname[hostlen-1] = '\0'; // Always null-terminate    
     
-    // calc the directory                
+    // get the directory                
     char *cwd = getcwd(NULL, 0); //TODO portability: this is GNU libc specific... + errchk
     int cwdlen = strlen(cwd);
+    // get a ptr to the first '/' within the (truncated) directory string
     char *ptr = strchr(cwd + ((MAX_DIR_LENGTH < cwdlen) ? cwdlen - MAX_DIR_LENGTH : 0), '/');   // TODO max_Dir_l ??
     
     prompt[0] = '\0';
     char *next;     // points to the next substring to add to the prompt
     #define BUF_SIZE 10
     char buf[BUF_SIZE];   // used for char / int to string conversion 
-    int i, len = strlen(user_prompt_string);
-    for( i = 0; i < len; i++) {
+    int i;
+    for (i = 0; i < strlen(user_prompt_string); i++) {
         if (user_prompt_string[i] != '%') {
             snprintf(buf, BUF_SIZE, "%c", user_prompt_string[i]);
             next = buf;
@@ -338,7 +334,11 @@ char* getprompt(int status) {
                     break;
             }
         }
-        CHK_LEN(next);
+        // check length of string to concat; abort to avoid an overflow
+        if ((strlen(prompt) + strlen(next)) > MAX_PROMPT_LENGTH) {
+            printdebug("Prompt expansion too long: not concatting '%s'", next);
+            return prompt;
+        }
         strcat(prompt, next);
     }
     return prompt;
@@ -477,6 +477,15 @@ int parse_built_in(comd *comd, int index) {
             if (hlist)
                 for (i = 0; hlist[i]; i++)
                     printf ("%s\n", hlist[i]->line);
+            return EXIT_SUCCESS;
+            break;
+        case PROMPT:
+            CHK_ARGC("prompt", 1);
+            printdebug("setting user_prompt_string to '%s'", comd->cmd[1]);
+            if (user_prompt_string != DEFAULT_PROMPT)
+                free(user_prompt_string);
+            user_prompt_string = malloc(strlen(comd->cmd[1])+1);
+            strcpy(user_prompt_string, comd->cmd[1]);
             return EXIT_SUCCESS;
             break;
         case SHCAT:
