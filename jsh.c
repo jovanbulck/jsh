@@ -482,14 +482,19 @@ int parse_built_in(comd *comd, int index) {
             return EXIT_SUCCESS;
             break;
         case PROMPT:
+            {
             CHK_ARGC("prompt", 1);
-            printdebug("setting user_prompt_string to '%s'", comd->cmd[1]);
-            if (user_prompt_string != DEFAULT_PROMPT)
+            static bool prompt_changed = false;
+            if (prompt_changed)
                 free(user_prompt_string);
+            else
+                prompt_changed = true;
+            printdebug("setting user_prompt_string to '%s'", comd->cmd[1]);
             user_prompt_string = malloc(strlen(comd->cmd[1])+1);
             strcpy(user_prompt_string, comd->cmd[1]);
             return EXIT_SUCCESS;
             break;
+            }
         case SHCAT:
             parsestream(stdin, "stdin", (void (*)(char*)) printf);  // built_in cat; mainly for testing purposes (redirecting stdin)
             return EXIT_SUCCESS;
