@@ -47,6 +47,7 @@ void touch_config_files(void);
 bool DEBUG = true;
 bool COLOR = true;
 bool LOAD_RC = true;
+bool WAITING_FOR_CHILD = false; // whether or not the jsh parent process is currently (blocking) waiting for child termination
 bool I_AM_FORK = false;
 bool IS_INTERACTIVE;      // initialized in things_todo_at_start; (compiler's 'constant initializer' complaints)
 int nb_hist_entries = 0; // number of saved hist entries in this jsh session
@@ -518,6 +519,10 @@ int parse_built_in(comd *comd, int index) {
  * tells GNU readline to diplay a prompt on a newline
  */
 void sig_int_handler(int signo) {
-    rl_crlf();                  // set cursor to newline
-    siglongjmp(ctrlc_buf, 1);   // jump back to main loop
+    // if ^C entered in child process --> also sent to parent (jsh) process
+    // --> only clear the prompt when not waiting for an executing child (allow the waitpid to return)
+    if (!WAITING_FOR_CHILD) {
+        rl_crlf();                  // set cursor to newline
+        siglongjmp(ctrlc_buf, 1);   // jump back to main loop
+    }
 }

@@ -83,6 +83,7 @@ extern bool DEBUG;
 extern bool COLOR;
 extern bool I_AM_FORK;               // whether or not the current process is a fork, i.e. child process
 extern bool IS_INTERACTIVE;
+extern bool WAITING_FOR_CHILD;
 
 // common function definitions
 void printerr(const char*, ...);
