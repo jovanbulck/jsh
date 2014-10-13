@@ -304,37 +304,42 @@ char* getprompt(int status) {
     char *ptr = strchr(cwd + ((MAX_DIR_LENGTH < cwdlen) ? cwdlen - MAX_DIR_LENGTH : 0), '/');   // TODO max_Dir_l ??
     
     prompt[0] = '\0';
-    char *str = "";
+    char *next;     // points to the next substring to add to the prompt
+    #define BUF_SIZE 10
+    char buf[BUF_SIZE];   // used for char / int to string conversion 
     int i, len = strlen(user_prompt_string);
-    for( i = 0; i < len; i++){
-        if (user_prompt_string[i] != '%')
-            sprintf(str, "%c", user_prompt_string[i]);
+    for( i = 0; i < len; i++) {
+        if (user_prompt_string[i] != '%') {
+            snprintf(buf, BUF_SIZE, "%c", user_prompt_string[i]);
+            next = buf;
+        }
         else {
             i++; // potentially overread the '\0' char
             switch (user_prompt_string[i]) {
                 case 'u':
-                    str = getenv("USER");
+                    next = getenv("USER");
                     break;
                 case 'h':
-                    str = hostname;
+                    next = hostname;
                     break;
                 case 's':
-                    sprintf(str, "%d", status);
+                    snprintf(buf, BUF_SIZE, "%d", status);
+                    next = buf;
                     break;
                 case 'd':
-                    str = ((ptr != NULL) ? ptr : cwd + cwdlen - MAX_DIR_LENGTH);
+                    next = ((ptr != NULL) ? ptr : cwd + cwdlen - MAX_DIR_LENGTH);
                     break;
                 case '%':
-                    str = "%";
+                    next = "%";
                     break;
                 default:
                     printerr("unrecognized prompt option '%%%c'", user_prompt_string[i]);
-                    str = "";
+                    next = "";
                     break;
             }
         }
-        CHK_LEN(str);
-        strcat(prompt, str);
+        CHK_LEN(next);
+        strcat(prompt, next);
     }
     return prompt;
 }
