@@ -425,12 +425,16 @@ int execute(comd *pipeline, int npipes) {
     }
     // ######## continued parent process execution: wait for children completion ########
     CLOSE_ALL_PIPES; // close all remaining open pipe fds; no longer needed
+
     // wait for children completion
+    WAITING_FOR_CHILD = true;
     int statuschild = 0;
     for (k = 0; k < nbchildren; k++) {
         wait(&statuschild);
         printdebug("waiting completed: child %d of %d", k+1, nbchildren);
     }
+    WAITING_FOR_CHILD = false;
+    
     // free() the comd list
     freecomdlist(pipeline);
     
