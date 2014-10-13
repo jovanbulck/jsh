@@ -285,20 +285,7 @@ char* getprompt(int status) {
     if (!IS_INTERACTIVE)
         return "";    
     
-    static char prompt[MAX_PROMPT_LENGTH] = "";  // static: hold between function calls (because return value)
-    
-    // get the hostname
-    int hostlen = sysconf(_SC_HOST_NAME_MAX)+1; // Plus one for null terminate
-    char hostname[hostlen];
-    gethostname(hostname, hostlen);
-    hostname[hostlen-1] = '\0'; // Always null-terminate    
-    
-    // get the directory                
-    char *cwd = getcwd(NULL, 0); //TODO portability: this is GNU libc specific... + errchk
-    int cwdlen = strlen(cwd);
-    // get a ptr to the first '/' within the (truncated) directory string
-    char *ptr = strchr(cwd + ((MAX_DIR_LENGTH < cwdlen) ? cwdlen - MAX_DIR_LENGTH : 0), '/');   // TODO max_Dir_l ??
-    
+    static char prompt[MAX_PROMPT_LENGTH] = "";  // static: hold between function calls (because return value)   
     prompt[0] = '\0';
     char *next;     // points to the next substring to add to the prompt
     #define BUF_SIZE 10
@@ -316,15 +303,28 @@ char* getprompt(int status) {
                     next = getenv("USER");
                     break;
                 case 'h':
+                    {   // to allow declarions inside a switch)
+                    int hostlen = sysconf(_SC_HOST_NAME_MAX)+1; // Plus one for null terminate
+                    char hostname[hostlen];
+                    gethostname(hostname, hostlen);
+                    hostname[hostlen-1] = '\0'; // Always null-terminate                     
                     next = hostname;
                     break;
+                    }
                 case 's':
                     snprintf(buf, BUF_SIZE, "%d", status);
                     next = buf;
                     break;
                 case 'd':
+                    {
+                    // get the directory                
+                    char *cwd = getcwd(NULL, 0); //TODO portability: this is GNU libc specific... + errchk
+                    int cwdlen = strlen(cwd);
+                    // get a ptr to the first '/' within the (truncated) directory string
+                    char *ptr = strchr(cwd + ((MAX_DIR_LENGTH < cwdlen) ? cwdlen - MAX_DIR_LENGTH : 0), '/');   // TODO max_Dir_l ??
                     next = ((ptr != NULL) ? ptr : cwd + cwdlen - MAX_DIR_LENGTH);
                     break;
+                    }
                 case '%':
                     next = "%";
                     break;
@@ -336,7 +336,7 @@ char* getprompt(int status) {
         }
         // check length of string to concat; abort to avoid an overflow
         if ((strlen(prompt) + strlen(next)) > MAX_PROMPT_LENGTH) {
-            printdebug("Prompt expansion too long: not concatting '%s'", next);
+            printdebug("Prompt expansion too long: not concatting '%s'. Now returning", next);
             return prompt;
         }
         strcat(prompt, next);
@@ -449,7 +449,8 @@ int parse_built_in(comd *comd, int index) {
                 return alias(comd->cmd[1], comd->cmd[2]);
             }
             break;
-        case CD: ; // (hackhackhack to allow declarions inside a switch)
+        case CD:
+            { // to allow declarions inside a switch)
             char *dir;
             if (comd->length == 1)
                 dir = getenv("HOME");
@@ -461,6 +462,7 @@ int parse_built_in(comd *comd, int index) {
             setenv("PWD", dir, 1);
             return EXIT_SUCCESS;
             break;
+            }
         case CLR:
             TOGGLE_VAR("color", COLOR, comd->cmd[1]);   //TODO global var
             break;
