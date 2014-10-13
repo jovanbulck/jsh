@@ -27,7 +27,6 @@
 
 // ########## macro definitions ##########
 #define MAX_PROMPT_LENGTH       100     // maximum length of the displayed prompt
-#define MAX_DIR_LENGTH          25
 #define HISTFILE                ".jsh_history"
 #define RCFILE                  ".jshrc"
 #define LOGIN_FILE              ".jsh_login"
@@ -53,7 +52,7 @@ bool IS_INTERACTIVE;      // initialized in things_todo_at_start; (compiler's 'c
 int nb_hist_entries = 0; // number of saved hist entries in this jsh session
 sigjmp_buf ctrlc_buf;    // buf used for setjmp/longjmp when SIGINT received
 char *user_prompt_string = DEFAULT_PROMPT;
-
+int MAX_DIR_LENGTH = 25;
 /*
  * built_ins[] = array of built_in cmd names; should be sorted with 'qsort(built_ins, nb_built_ins, sizeof(char*), string_cmp);'
  * built_in enum = value corresponds to index in built_ins[]
@@ -483,7 +482,12 @@ int parse_built_in(comd *comd, int index) {
             break;
         case PROMPT:
             {
-            CHK_ARGC("prompt", 1);
+            // check for the optional dir length argument
+            if (comd->length == 3)
+                MAX_DIR_LENGTH = atoi(comd->cmd[2]);    // will return 0 on non-integer
+            else
+                CHK_ARGC("prompt", 1);
+            
             static bool prompt_changed = false;
             if (prompt_changed)
                 free(user_prompt_string);
