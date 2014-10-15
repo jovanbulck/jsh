@@ -1,13 +1,13 @@
 .\" Manpage for jsh.
-.TH JSH 1 "11 October 2014" "1.0" "jsh man page" .\" TODO fill in
+.TH JSH 1 "17 October 2014" "jsh 1.0" "jsh man page" .\" TODO fill in
 .SH NAME
-jsh (jo-shell) \- A proof-of-concept UNIX shell implementation in C
+jsh (jo-shell) \- A basic UNIX shell implementation in C
 .SH SYNOPSIS
 \fBjsh\fP [options]
 .SH DESCRIPTION
-\fBjsh\fP is a UNIX command interpreter (shell) that executes commands read from the standard input or from a file. Jsh implements a subset of the \fBsh\fP language grammar and is intended to be POSIX-conformant.
+\fBjsh\fP is a UNIX command interpreter (shell) that executes commands read from the standard input or from a file. \fBjsh\fP implements a subset of the \fBsh\fP language grammar and is intended to be POSIX-conformant.
 
-\fBjsh\fP is written 'just for fun' and is not intented to be a complete replacement for standard UNIX shells such as bash. Jsh is free software and you are welcome to collaborate on the github page (https://github.com/jovanbulck/jo-shell) or to redistribute jsh under the conditions of the GNU General Public License.
+\fBjsh\fP is written 'just for fun' and is not intented to be a full competitor to advanced UNIX shells such as \fBbash\fP and \fBzsh\fP. \fBjsh\fP is free software and you are welcome to collaborate on the github page (https://github.com/jovanbulck/jo-shell) or to redistribute jsh under the conditions of the GNU General Public License.
 .SH OPTIONS
 \fBjsh\fP supports any combination of the following options:
 .TP
@@ -44,14 +44,24 @@ file containing the command history auto loaded and saved at login/logout
 .SH THE JSH WIKI
 \fBjsh\fP has a wiki (https://github.com/jovanbulck/jo-shell/wiki) where you can find up-to-date information and installation instructions for various platforms.
 .SH BUGS REPORTS
-If you find a bug in \fBjsh\fP, you should report it on the github page (https://github.com/jovanbulck/jo-shell). Note you can always find the latest version here. Please check first whether the bug appears in the latest version of jsh.
+If you find a bug or vulnerability in \fBjsh\fP, you should report it on the github page (https://github.com/jovanbulck/jo-shell/issues). Note you can always find the latest version here. Please check first whether the bug appears in the latest version of jsh.
 .SH KNOWN BUGS
-One cannot overwrite the binary of \fBjsh\fP from within an executing \fBjsh\fP session.
+\fBjsh\fP only supports a small subset of the \fBsh\fP language grammar and its interpretation can sometimes be ambiguous. You're welcome to propose better interpretations on the github page, linked above.
 
-Job control is not yet implemented; pressing ^Z will suspend the \fBjsh\fP shell.
+Single quotes (') and backticks (`) are not (yet) interpreted by the \fBjsh\fP shell.
+
+Environment variables are not yet implemented. This will be added in future releases.
+
+Job control is not yet implemented; pressing ^Z will suspend the \fBjsh\fP shell. Background jobs will be implemented in future releases.
+.SH DISCLAIMER
+\fBjsh\fP is not a master thesis.
+
+\fBjsh\fP can be time-consuming and school-distracting. 
+
+Any resemblance of \fBjsh\fP to actual persons is purely coincidental.
 .SH AUTHOR
-\fBjsh\fP was orginally written by Jo Van Bulck <jo.vanbulck@student.kuleuven.be>. Other contributers are listed on the github project (https://github.com/jovanbulck/jo-shell/graphs/contributors).
+\fBjsh\fP was orginally written by Jo Van Bulck <jo.vanbulck@student.kuleuven.be>. For additional contributors, use \fBgit shortlog -sn\fP on the jo-shell.git repository.
 .SH LICENSE
-\fBjsh\fP is free software, licensed under the GNU General Public License (https://gnu.org/licenses/gpl.html). Execute \fBjsh --license\fP for more information.
+\fBjsh\fP is free software, licensed under the GNU General Public License (https://gnu.org/licenses/gpl.html). Try \fBjsh --license\fP for more information.
 .SH SEE ALSO
 \fIsh(1)\fR, \fIbash(1)\fR, \fIreadline(1)\fR.
