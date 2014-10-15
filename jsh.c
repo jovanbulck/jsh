@@ -26,12 +26,12 @@
 #include <readline/history.h>
 
 // ########## macro definitions ##########
-#define MAX_PROMPT_LENGTH       100     // maximum length of the displayed prompt
 #define HISTFILE                ".jsh_history"
 #define RCFILE                  ".jshrc"
 #define LOGIN_FILE              ".jsh_login"
-#define DEFAULT_PROMPT          "%u@%h[%s]:%d$ "
-
+#define DEFAULT_PROMPT          "%u@%h[%s]:%d$ "    // default init prompt string: "user@host[status]:pwd$ "
+#define MAX_PROMPT_LENGTH       100                 // maximum length of the displayed prompt string
+#define MAX_STATUS_LENGTH       10                  // the max number of msd of a status integer in the prompt string
 // ########## function declarations ##########
 void option(char*);
 void things_todo_at_start(void);
@@ -49,11 +49,12 @@ bool COLOR = true;
 bool LOAD_RC = true;
 bool WAITING_FOR_CHILD = false; // whether or not the jsh parent process is currently (blocking) waiting for child termination
 bool I_AM_FORK = false;
-bool IS_INTERACTIVE;      // initialized in things_todo_at_start; (compiler's 'constant initializer' complaints)
-int nb_hist_entries = 0; // number of saved hist entries in this jsh session
-sigjmp_buf ctrlc_buf;    // buf used for setjmp/longjmp when SIGINT received
+bool IS_INTERACTIVE;            // initialized in things_todo_at_start; (compiler's 'constant initializer' complaints)
+int nb_hist_entries = 0;        // number of saved hist entries in this jsh session
+sigjmp_buf ctrlc_buf;           // buf used for setjmp/longjmp when SIGINT received
 char *user_prompt_string = DEFAULT_PROMPT;
-int MAX_DIR_LENGTH = 25;
+int MAX_DIR_LENGTH = 25;        // the maximum length of an expanded pwd substring in the prompt string
+
 /*
  * built_ins[] = array of built_in cmd names; should be sorted with 'qsort(built_ins, nb_built_ins, sizeof(char*), string_cmp);'
  * built_in enum = value corresponds to index in built_ins[]
@@ -277,9 +278,10 @@ void things_todo_at_exit(void) {
 }
 
 /*
- * getprompt: return a string containing the command prompt (including status of last executed expr)
- *            iff IS_INTERACTIVE else the empty string is returned.
- *            the returned string is truncated to MAX_PROMPT_LENGTH TODO smarter truncation...
+ * getprompt: return a string representing the command prompt (as defined by the user_prompt_string)
+ *  iff IS_INTERACTIVE, else the empty string is returned. The returned string is guaranteed to be less then 
+ *  MAX_PROMPT_LENGTH; when a directory is expanded in the prompt string, it is 'smart' truncated to MAX_DIR_LENGTH.
+ *  When a status integer is included in the prompt string, it is truncated to MAX_STATUS_LENGTH msd digits.
  */
 char* getprompt(int status) {    
     if (!IS_INTERACTIVE)
@@ -287,17 +289,16 @@ char* getprompt(int status) {
     
     static char prompt[MAX_PROMPT_LENGTH] = "";  // static: hold between function calls (because return value)   
     prompt[0] = '\0';
-    char *next;     // points to the next substring to add to the prompt
-    #define BUF_SIZE 10
-    char buf[BUF_SIZE];   // used for char / int to string conversion 
+    char *next;                         // points to the next substring to add to the prompt
+    char buf[MAX_STATUS_LENGTH];        // used for char / int to string conversion 
     int i;
     for (i = 0; i < strlen(user_prompt_string); i++) {
         if (user_prompt_string[i] != '%') {
-            snprintf(buf, BUF_SIZE, "%c", user_prompt_string[i]);
+            snprintf(buf, MAX_STATUS_LENGTH, "%c", user_prompt_string[i]);
             next = buf;
         }
         else {
-            i++; // potentially overread the '\0' char
+            i++; // potentially overread the '\0' char (harmless)
             switch (user_prompt_string[i]) {
                 case 'u':
                     next = getenv("USER");
@@ -312,7 +313,7 @@ char* getprompt(int status) {
                     break;
                     }
                 case 's':
-                    snprintf(buf, BUF_SIZE, "%d", status);
+                    snprintf(buf, MAX_STATUS_LENGTH, "%d", status);
                     next = buf;
                     break;
                 case 'd':
@@ -321,7 +322,7 @@ char* getprompt(int status) {
                     char *cwd = getcwd(NULL, 0); //TODO portability: this is GNU libc specific... + errchk
                     int cwdlen = strlen(cwd);
                     // get a ptr to the first '/' within the (truncated) directory string
-                    char *ptr = strchr(cwd + ((MAX_DIR_LENGTH < cwdlen) ? cwdlen - MAX_DIR_LENGTH : 0), '/');   // TODO max_Dir_l ??
+                    char *ptr = strchr(cwd + ((MAX_DIR_LENGTH < cwdlen) ? cwdlen - MAX_DIR_LENGTH : 0), '/');
                     next = ((ptr != NULL) ? ptr : cwd + cwdlen - MAX_DIR_LENGTH);
                     break;
                     }
@@ -329,14 +330,14 @@ char* getprompt(int status) {
                     next = "%";
                     break;
                 default:
-                    printerr("unrecognized prompt option '%c'", user_prompt_string[i]);
+                    printerr("skipping unrecognized prompt option '%c'", user_prompt_string[i]);
                     next = "";
                     break;
             }
         }
         // check length of string to concat; abort to avoid an overflow
         if ((strlen(prompt) + strlen(next)) > MAX_PROMPT_LENGTH) {
-            printdebug("Prompt expansion too long: not concatting '%s'. Now returning", next);
+            printdebug("Prompt expansion too long: not concatting '%s'. Now returning...", next);
             return prompt;
         }
         strcat(prompt, next);
@@ -485,15 +486,15 @@ int parse_built_in(comd *comd, int index) {
             {
             // check for the optional dir length argument
             if (comd->length == 3)
-                MAX_DIR_LENGTH = atoi(comd->cmd[2]);    // will return 0 on non-integer
+                MAX_DIR_LENGTH = abs(atoi(comd->cmd[2]));    // will return 0 on non-integer
             else
                 CHK_ARGC("prompt", 1);
             
-            static bool prompt_changed = false;
-            if (prompt_changed)
+            static bool prompt_init = true;
+            if (!prompt_init)
                 free(user_prompt_string);
             else
-                prompt_changed = true;
+                prompt_init = false;
             printdebug("setting user_prompt_string to '%s'", comd->cmd[1]);
             user_prompt_string = malloc(strlen(comd->cmd[1])+1);
             strcpy(user_prompt_string, comd->cmd[1]);
@@ -506,7 +507,7 @@ int parse_built_in(comd *comd, int index) {
             break;
         case UNALIAS:
             CHK_ARGC("unalias", 1);
-            return unalias(comd->cmd[1]); //TODO dit wordt geresolved ...
+            return unalias(comd->cmd[1]);
             break;
         default:
             printerr("parse_built_in: unrecognized built_in command: '%s' with index %d", *comd->cmd, index);
