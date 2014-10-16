@@ -1,6 +1,6 @@
 /* This file is part of jsh.
  * 
- * jsh (jo-shell): A proof-of-concept shell implementation
+ * jsh (jo-shell): A basic UNIX shell implementation in C
  * Copyright (C) 2014 Jo Van Bulck <jo.vanbulck@student.kuleuven.be>
  *
  * jsh is free software: you can redistribute it and/or modify

@@ -7,7 +7,7 @@
                 /___/                                           
 ```
 
-A proof-of-concept UNIX shell implementation.
+A basic UNIX shell implementation in C
 
 `jsh` is free software and makes use of the `GNU Readline` library for input line editing and history.
 
