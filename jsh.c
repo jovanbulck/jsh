@@ -485,8 +485,10 @@ int parse_built_in(comd *comd, int index) {
         case PROMPT:
             {
             // check for the optional dir length argument
-            if (comd->length == 3)
+            if (comd->length == 3) {
                 MAX_DIR_LENGTH = abs(atoi(comd->cmd[2]));    // will return 0 on non-integer
+                printdebug("setting MAX_DIR_LENGTH to %d", MAX_DIR_LENGTH);
+            }
             else
                 CHK_ARGC("prompt", 1);
             
