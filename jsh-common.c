@@ -151,7 +151,7 @@ int string_cmp(const void *a, const void *b) {
  */
 bool is_sorted(void *a, size_t n, size_t el_size, int (*compar)(const void *, const void *)) {
     int i;
-    for (i = 0; i < n - 1; i += el_size) {
+    for (i = 0; i < (n - 1)*el_size; i += el_size) {
         int rv = compar((a + i), (a + i + el_size));
         if (rv >= 0)
             return false;
