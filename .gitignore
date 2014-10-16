@@ -3,6 +3,6 @@
 # the linked binary
 jsh
 # gedit backup files
-*.*~
+*~
 
 .fuse_hidden*
