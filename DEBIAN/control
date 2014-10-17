@@ -1,0 +1,9 @@
+Package: jsh
+Version: 1.0.0
+Section: base
+Priority: optional
+Architecture: i386
+Depends: libreadline6-dev 
+Maintainer: Stefaan Truijen <stefaan.truijen@student.kuleuven.be>
+Description: Jsh, A basic UNIX shell implementation in C
+ A basic UNIX shell implementation in C
