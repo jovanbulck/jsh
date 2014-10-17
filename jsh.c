@@ -44,7 +44,11 @@ void sig_int_handler(int sig);
 void touch_config_files(void);
 
 // ########## global variables ##########
+#ifdef NODEBUG
+bool DEBUG = false;
+#else
 bool DEBUG = true;
+#endif
 bool COLOR = true;
 bool LOAD_RC = true;
 bool WAITING_FOR_CHILD = false; // whether or not the jsh parent process is currently (blocking) waiting for child termination
