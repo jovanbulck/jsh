@@ -368,10 +368,12 @@ char *readcmd(int status) {
     if (buf != NULL && *buf) {
         // do history expansion
         char *expansion = '\0';
-        if (history_expand(buf, &expansion) != -1) {
-            printdebug("readcmd: cmd '%s' expanded to '%s'", buf, expansion);
-            free(buf); // free unexpanded version
-            buf = expansion; // point to expanded cmd
+        int hist_rv;
+        if ((hist_rv = history_expand(buf, &expansion)) != -1) {
+            if (hist_rv == 1)
+                printf("%s\n", expansion);  // bash-style print the expanded command string iff changed
+            free(buf);                      // free unexpanded version
+            buf = expansion;                // point to expanded cmd
         }
         else {
             printerr("readcmd: history expansion failed for '%s': '%s'", buf, expansion);
