@@ -1,33 +1,42 @@
-UNAME_S                 = $(shell uname -s)
 JSH_INSTALL_DIR         = /usr/local/bin
 MANPAGE_INSTALL_DIR     = /usr/local/man/man1
 
+CC                      = gcc
+CFLAGS                  = -g
+LIBS                    = -lreadline
+LN                      = $(CC) $(CFLAGS) jsh-common.o jsh.o alias.o -o jsh $(LIBS)
+
+ECHO_LIBS               = echo "Linking jsh with the following libraries: $(LIBS) "
+
+UNAME_S                 = $(shell uname -s)
+
 ifeq ($(UNAME_S), Darwin) # Add library folder for Mac OS X readline (installed with homebrew)
-	LINK := gcc -g jsh-common.o jsh.o alias.o -o jsh -L/usr/local/lib/ -lreadline
-else
-	LINK := gcc -g jsh-common.o jsh.o alias.o -o jsh -lreadline -lncurses
+	LINK = @$(LN) -L/usr/local/lib/
+else # try to link jsh with the readline library (and curses or termcap if needed)
+	LINK = @(($(ECHO_LIBS)); ($(LN)) || (($(ECHO_LIBS) "lncurses"); $(LN) -lncurses) || \
+	(($(ECHO_LIBS) "termcap"); $(LN) -termcap) || (echo "Failed linking jsh: all known fallback libraries were tried"))
 endif
 
 all: jsh-common alias jsh link
 	@echo "-------- Compiling all done --------"
 
 jsh-common: jsh-common.c jsh-common.h
-	gcc -g -c jsh-common.c -o jsh-common.o
+	$(CC) $(CFLAGS) -c jsh-common.c -o jsh-common.o
 alias: alias.c alias.h jsh-common.h
-	gcc -g -c alias.c -o alias.o
+	$(CC) $(CFLAGS) -c alias.c -o alias.o
 jsh: jsh-parse.c jsh.c jsh-common.h
-	gcc -g -c jsh.c -o jsh.o
+	$(CC) $(CFLAGS) -c jsh.c -o jsh.o
 link: jsh-common.o jsh.o alias.o
 	$(LINK)
 
 .PHONY: install
 install: all
 	@echo "installing jsh executable in directory $(JSH_INSTALL_DIR)..."
-	@test -d $(JSH_INSTALL_DIR) || (mkdir $(JSH_INSTALL_DIR) && echo "created directory $(JSH_INSTALL_DIR)")
+	@test -d $(JSH_INSTALL_DIR) || (mkdir -p $(JSH_INSTALL_DIR) && echo "created directory $(JSH_INSTALL_DIR)")
 	@install -m 0755 jsh $(JSH_INSTALL_DIR);
 	
 	@echo "installing the manpage in directory $(MANPAGE_INSTALL_DIR)..."
-	@test -d $(MANPAGE_INSTALL_DIR) || (mkdir $(MANPAGE_INSTALL_DIR) && echo "created directory $(MANPAGE_INSTALL_DIR)")
+	@test -d $(MANPAGE_INSTALL_DIR) || (mkdir -p $(MANPAGE_INSTALL_DIR) && echo "created directory $(MANPAGE_INSTALL_DIR)")
 	@install -m 0644 jsh.1 $(MANPAGE_INSTALL_DIR);
 	@echo "updating man-db..."
 	@mandb --quiet
