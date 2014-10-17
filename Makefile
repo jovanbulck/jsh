@@ -1,5 +1,4 @@
 JSH_INSTALL_DIR         = /usr/local/bin
-MANPAGE_INSTALL_DIR     = /usr/local/man/man1
 
 CC                      = gcc
 CFLAGS                  = -g
@@ -10,11 +9,13 @@ ECHO_LIBS               = echo "Linking jsh with the following libraries: $(LIBS
 
 UNAME_S                 = $(shell uname -s)
 
-ifeq ($(UNAME_S), Darwin) # Add library folder for Mac OS X readline (installed with homebrew)
-	LINK = @$(LN) -L/usr/local/lib/
+ifeq ($(UNAME_S), Darwin)
+	LINK = @$(LN) -L/usr/local/lib/ # Add library folder for Mac OS X readline (installed with homebrew)
+	MANPAGE_INSTALL_DIR     = /usr/local/share/man/man1 # Install path for man pages on Mac OS X
 else # try to link jsh with the readline library (and curses or termcap if needed)
 	LINK = @(($(ECHO_LIBS)); ($(LN)) || (($(ECHO_LIBS) "lncurses"); $(LN) -lncurses) || \
 	(($(ECHO_LIBS) "termcap"); $(LN) -termcap) || (echo "Failed linking jsh: all known fallback libraries were tried"))
+	MANPAGE_INSTALL_DIR     = /usr/local/man/man1
 endif
 
 all: jsh-common alias jsh link
@@ -38,8 +39,10 @@ install: all
 	@echo "installing the manpage in directory $(MANPAGE_INSTALL_DIR)..."
 	@test -d $(MANPAGE_INSTALL_DIR) || (mkdir -p $(MANPAGE_INSTALL_DIR) && echo "created directory $(MANPAGE_INSTALL_DIR)")
 	@install -m 0644 jsh.1 $(MANPAGE_INSTALL_DIR);
+ifneq ($(UNAME_S), Darwin) # Man-DB update is not necessary on Mac
 	@echo "updating man-db..."
 	@mandb --quiet
+endif
 	@echo "-------- Installation all done --------"
 
 .PHONY: clean
