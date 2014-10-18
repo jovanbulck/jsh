@@ -32,6 +32,8 @@
 #define DEFAULT_PROMPT          "%u@%h[%s]:%d$ "    // default init prompt string: "user@host[status]:pwd$ "
 #define MAX_PROMPT_LENGTH       100                 // maximum length of the displayed prompt string
 #define MAX_STATUS_LENGTH       10                  // the max number of msd of a status integer in the prompt string
+#define RL_CASE_INSENSITIVE     "set completion-ignore-case on"
+
 // ########## function declarations ##########
 void option(char*);
 void things_todo_at_start(void);
@@ -196,6 +198,81 @@ void optionfull(char *str) {
 }
 
 /*
+ * TODO http://stackoverflow.com/questions/4904980/gnu-readline-whitespace-quoting
+ */
+char **completion(const char *text, int start, int end) {    
+    printdebug("hi");
+    rl_filename_quoting_desired = 1;
+         rl_completion_append_character = '"';
+    return 0;
+}
+
+/* Filename quoting for completion. */
+/* A function to strip unquoted quote characters (single quotes, double
+   quotes, and backslashes).  It allows single quotes to appear
+   within double quotes, and vice versa.  It should be smarter. */
+static char *
+bash_dequote_filename (text, quote_char)
+     char *text;
+     int quote_char;
+{
+  int l = strlen(text);
+ char *result = malloc(l+1);
+  int i, j;
+  for (i = 0, j = 0; i < l; i++, j++)
+    if (i <l && text[i] == '\\')
+        result[j] = text[++i];
+    else
+        result[j] = text[i];
+  result[j] = '\0';
+  return text;
+}
+
+/* TODO newly allocated memory
+Quote characters that the readline completion code would treat as
+   word break characters with backslashes.  Pass backslash-quoted
+   characters through without examination. */
+char *quote_word_break_chars(char *text) {
+    char *ret, *r, *s;
+    int l;
+    
+    l = strlen(text);
+    ret = (char *) malloc ((2 * l) + 1);    //TODO why *2??
+    for (s = text, r = ret; *s; s++) {
+        /* Pass backslash-quoted characters through, including the backslash. */
+        if (*s == '\\') {
+            *r++ = '\\';
+	        *r++ = *++s;
+	        if (*s == '\0')
+	            break;
+	        continue;
+	    }
+        /* OK, we have an unquoted character. Check its presence in
+	    rl_completer_word_break_characters. */
+        if (strchr(rl_completer_word_break_characters, *s))
+	        *r++ = '\\';
+            /* XXX -- check for standalone tildes here and backslash-quote them */
+            /*if (s == text && *s == '~' && file_exists (text))
+                *r++ = '\\';*/
+            *r++ = *s;
+    }
+    *r = '\0';
+    return ret;
+}
+
+char *bash_quote_filename (char *s, int rtype, char *qcp) {
+    //printdebug("i am the quoting function and was passed '%s'", s);
+      /* TODO If RTYPE == MULT_MATCH, it means that there is
+     more than one match.  In this case, we do not add
+     the closing quote or attempt to perform tilde
+     expansion.  If RTYPE == SINGLE_MATCH, we try
+     to perform tilde expansion, because single and double
+     quotes inhibit tilde expansion by the shell. */
+
+     return quote_word_break_chars(s);
+}
+
+/*
  * things_todo_at_exit: do stuff that needs to be done at jsh login
  */
 void things_todo_at_start(void) {
@@ -208,6 +285,25 @@ void things_todo_at_start(void) {
     // evaluate once at startup; to maintain for forked children in a pipeline
     IS_INTERACTIVE = (isatty(STDIN_FILENO) && isatty(STDOUT_FILENO));
 
+    //TODO readline configuration
+    // copy constants to normal mem; see https://lists.gnu.org/archive/html/bug-readline/2014-10/msg00004.html
+    char *s;
+    #define RL_PARSE(str) \
+        s = malloc(strlen(str)+1); \
+        strcpy(s,str); \
+        printdebug("passing '%s' to rl_parse_and_bind", s); \
+        rl_parse_and_bind(s); \
+        free(s); \
+        s = NULL;
+
+    RL_PARSE(RL_CASE_INSENSITIVE);
+    // TODO see http://stackoverflow.com/questions/4904980/gnu-readline-whitespace-quoting
+    rl_attempted_completion_function = completion;
+    rl_filename_quote_characters  = " ";    // the characters to be escaped
+    rl_completer_quote_characters = "\"";   // the escape characters
+//    rl_filename_quoting_function = bash_quote_filename;
+    //rl_filename_dequoting_function = bash_dequote_filename;
+    
     touch_config_files();
     
     // load history file if any
