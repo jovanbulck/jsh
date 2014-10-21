@@ -216,6 +216,7 @@ bash_dequote_filename (text, quote_char)
      char *text;
      int quote_char;
 {
+printdebug("hi i have %s", text);
   int l = strlen(text);
  char *result = malloc(l+1);
   int i, j;
@@ -225,7 +226,8 @@ bash_dequote_filename (text, quote_char)
     else
         result[j] = text[i];
   result[j] = '\0';
-  return text;
+  printdebug("returning %s", result);
+  return result;
 }
 
 /* TODO newly allocated memory
@@ -261,7 +263,7 @@ char *quote_word_break_chars(char *text) {
 }
 
 char *bash_quote_filename (char *s, int rtype, char *qcp) {
-    //printdebug("i am the quoting function and was passed '%s'", s);
+    printdebug("i am the quoting function and was passed '%s'", s);
       /* TODO If RTYPE == MULT_MATCH, it means that there is
      more than one match.  In this case, we do not add
      the closing quote or attempt to perform tilde
@@ -270,6 +272,7 @@ char *bash_quote_filename (char *s, int rtype, char *qcp) {
      quotes inhibit tilde expansion by the shell. */
 
      return quote_word_break_chars(s);
+     //return s;
 }
 
 /*
@@ -298,11 +301,11 @@ void things_todo_at_start(void) {
 
     RL_PARSE(RL_CASE_INSENSITIVE);
     // TODO see http://stackoverflow.com/questions/4904980/gnu-readline-whitespace-quoting
-    rl_attempted_completion_function = completion;
+    //rl_attempted_completion_function = completion;
     rl_filename_quote_characters  = " ";    // the characters to be escaped
     rl_completer_quote_characters = "\"";   // the escape characters
-//    rl_filename_quoting_function = bash_quote_filename;
-    //rl_filename_dequoting_function = bash_dequote_filename;
+rl_filename_quoting_function = bash_quote_filename;
+    rl_filename_dequoting_function = bash_dequote_filename;
     
     touch_config_files();
     
