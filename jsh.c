@@ -26,7 +26,7 @@
 #include <readline/history.h>
 
 // ########## macro definitions ##########
-#define VERSION			"1.1.0"
+#define VERSION                 "1.1.0"
 #define HISTFILE                ".jsh_history"
 #define RCFILE                  ".jshrc"
 #define LOGIN_FILE              ".jsh_login"
@@ -113,23 +113,23 @@ void option(char *str) {
 					return optionfull(str);
 				break; // else: ignore
 			case 'h':
-				printf("jo-shell: A proof-of-concept UNIX shell implementation in C\n");
-				printf("\nRecognized options:\n");
-				printf("-h, --help\tdisplay this help message\n");
-				printf("-d, --debug\tturn printing of debug messages on\n");
-				printf("-n, --nodebug\tturn printing of debug messages on\n");
-				printf("-c, --color\tturn coloring of jsh output messages on\n");
-		        printf("-o, --nocolor\tturn coloring of jsh output messages off\n");
-		        printf("-f, --norc\tdisable autoloading of the ~/%s file\n", RCFILE);
+                printf("jo-shell: A basic UNIX shell implementation in C\n");
+                printf("\nRecognized options:\n");
+                printf("-h, --help\tdisplay this help message\n");
+                printf("-d, --debug\tturn printing of debug messages on\n");
+                printf("-n, --nodebug\tturn printing of debug messages on\n");
+                printf("-c, --color\tturn coloring of jsh output messages on\n");
+                printf("-o, --nocolor\tturn coloring of jsh output messages off\n");
+                printf("-f, --norc\tdisable autoloading of the ~/%s file\n", RCFILE);
 		        printf("-l, --license\tdisplay licence information\n");
-                printf("-v, --version\tdisplay version information\n");
-		        printf("\nConfiguration files:\n");
-		        printf("~/%s\tfile containing commands to be executed at login\n", RCFILE);
-		        printf("~/%s\tfile containing the welcome message auto printed at login of an interactive session\n", LOGIN_FILE);
-		        printf("~/%s\tfile containing the command history auto loaded and saved at login/logout\n", HISTFILE);
-		        printf("\nReport bugs to: jo.vanbulck@student.kuleuven.be\n");
-		        printf("jsh homepage: <https://github.com/jovanbulck/jo-shell>\n");
-		        printf("This program is free software, and you are welcome to redistribute it under\n");
+    	        printf("-v, --version\tdisplay version information\n");
+    	        printf("\nConfiguration files:\n");
+    	        printf("~/%s\tfile containing commands to be executed at login\n", RCFILE);
+    	        printf("~/%s\tfile containing the welcome message auto printed at login of an interactive session\n", LOGIN_FILE);
+    	        printf("~/%s\tfile containing the command history auto loaded and saved at login/logout\n", HISTFILE);
+    	        printf("\nReport bugs to: jo.vanbulck@student.kuleuven.be\n");
+                printf("jsh homepage: <https://github.com/jovanbulck/jo-shell>\n");
+    	        printf("This program is free software, and you are welcome to redistribute it under\n");
                 printf("the condititions of the GNU General Public License. Try 'jsh --license' for more info.\n");
 		        exit(EXIT_SUCCESS);
             case 'v': 
@@ -152,9 +152,8 @@ void option(char *str) {
 		        LOAD_RC = false;
 		        break;
 		    case 'l':
-				printf("jo-shell: A proof-of-concept shell implementation\n");
+				printf("jo-shell: A basic UNIX shell implementation in C\n");
                 printf("Copyright (C) 2014 Jo Van Bulck <jo.vanbulck@student.kuleuven.be>\n");
-                
                 printf("\nThis program is free software: you can redistribute it and/or modify\n");
                 printf("it under the terms of the GNU General Public License as published by\n");
                 printf("the Free Software Foundation, either version 3 of the License, or\n");
