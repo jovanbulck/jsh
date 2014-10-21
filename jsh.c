@@ -26,6 +26,7 @@
 #include <readline/history.h>
 
 // ########## macro definitions ##########
+#define VERSION			"1.1.0"
 #define HISTFILE                ".jsh_history"
 #define RCFILE                  ".jshrc"
 #define LOGIN_FILE              ".jsh_login"
@@ -121,6 +122,7 @@ void option(char *str) {
 		        printf("-o, --nocolor\tturn coloring of jsh output messages off\n");
 		        printf("-f, --norc\tdisable autoloading of the ~/%s file\n", RCFILE);
 		        printf("-l, --license\tdisplay licence information\n");
+                printf("-v, --version\tdisplay version information\n");
 		        printf("\nConfiguration files:\n");
 		        printf("~/%s\tfile containing commands to be executed at login\n", RCFILE);
 		        printf("~/%s\tfile containing the welcome message auto printed at login of an interactive session\n", LOGIN_FILE);
@@ -130,6 +132,10 @@ void option(char *str) {
 		        printf("This program is free software, and you are welcome to redistribute it under\n");
                 printf("the condititions of the GNU General Public License. Try 'jsh --license' for more info.\n");
 		        exit(EXIT_SUCCESS);
+            case 'v': 
+                printf("%s\n", VERSION);
+                exit(EXIT_SUCCESS);
+                break;
 			case 'd':
 				DEBUG = true;
 				break;
@@ -184,6 +190,8 @@ void optionfull(char *str) {
 	    option("c");
 	else if (strcmp(str,"help") == 0)
 	    option("h");
+	else if (strcmp(str,"version") == 0)
+	    option("v");
     else if (strcmp(str,"norc") == 0)
         option("f");
     else if (strcmp(str,"license") == 0)
