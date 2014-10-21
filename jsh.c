@@ -26,7 +26,7 @@
 #include <readline/history.h>
 
 // ########## macro definitions ##########
-#define VERSION                 "1.1.0"
+#define VERSION                 "jsh 1.1.0"
 #define HISTFILE                ".jsh_history"
 #define RCFILE                  ".jshrc"
 #define LOGIN_FILE              ".jsh_login"
