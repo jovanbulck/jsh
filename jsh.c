@@ -527,6 +527,7 @@ int parse_built_in(comd *comd, int index) {
 		case SRC:
 			CHK_ARGC("source", 1);
 			parsefile(comd->cmd[1], (void (*)(char*)) parseexpr, true); // errormsg if file not found
+			return EXIT_SUCCESS;
 			break;
         default:
             printerr("parse_built_in: unrecognized built_in command: '%s' with index %d", *comd->cmd, index);
