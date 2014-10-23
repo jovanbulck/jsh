@@ -65,9 +65,9 @@ int MAX_DIR_LENGTH = 25;        // the maximum length of an expanded pwd substri
  * built_in enum = value corresponds to index in built_ins[]
  */
 const char *built_ins[] = {"", "F", "T", "alias", "cd", "color", "debug",\
-"exit", "history", "prompt", "shcat", "unalias"};
+"exit", "history", "prompt", "shcat", "source", "unalias"};
 #define nb_built_ins (sizeof(built_ins)/sizeof(built_ins[0]))
-enum built_in {EMPTY, F, T, ALIAS, CD, CLR, DBG, EXIT, HIST, PROMPT, SHCAT, UNALIAS};
+enum built_in {EMPTY, F, T, ALIAS, CD, CLR, DBG, EXIT, HIST, PROMPT, SHCAT, SRC, UNALIAS};
 typedef enum built_in built_in;
 
 /*
@@ -524,6 +524,11 @@ int parse_built_in(comd *comd, int index) {
             CHK_ARGC("unalias", 1);
             return unalias(comd->cmd[1]);
             break;
+		case SRC:
+			CHK_ARGC("source", 1);
+			parsefile(comd->cmd[1], (void (*)(char*)) parseexpr, true); // errormsg if file not found
+			return EXIT_SUCCESS;
+			break;
         default:
             printerr("parse_built_in: unrecognized built_in command: '%s' with index %d", *comd->cmd, index);
 			exit(EXIT_FAILURE);
