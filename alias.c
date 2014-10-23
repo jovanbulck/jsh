@@ -57,16 +57,19 @@ int alias(char *k, char *v) {
     strncpy(new->key, k, keylength+1);
     new->value = val;
     
-    total_alias_val_length += vallength;
-    
+    if(alias_exists(k)) {
+        unalias(k);
+    }
+	total_alias_val_length += vallength;
+
     if (head == NULL) {
-        head = new;
-        tail = head;
-    }
-    else {
-        tail->next = new;
-        tail = new;
-    }
+	    head = new;
+	    tail = head;
+	}
+	else {
+	    tail->next = new;
+	    tail = new;
+	}
     return EXIT_SUCCESS;
 }
 
@@ -211,3 +214,24 @@ bool is_valid_alias(struct alias *alias, char *context) {
     printdebug("is_valid_alias: '%s', %d", alias->key, ret);
     return ret;
 }*/
+
+/*
+ * @return true if the supplied alias already exists.
+ **/
+bool alias_exists(char* key) {
+	if(head == 0) return false;
+
+	bool keepLooping = true;
+	struct alias *curAlias = head;
+	
+    while(keepLooping) {
+		// If we've finished looping through all the aliases without a problem, return false.
+		if(curAlias == 0) return false;
+		
+		// If the current alias matches one we're trying to define, return true.
+		if(strcmp(curAlias->key, key) == 0)	return true;
+		
+		// update curAlias
+		curAlias = curAlias->next;
+	}
+}

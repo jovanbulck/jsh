@@ -27,5 +27,6 @@ int alias(char*, char*);
 int unalias(char* key);
 int printaliases();
 char *resolvealiases(char*);
-
+bool alias_exists(char*);
+bool existing_alias_update(char*,char*);
 #endif //ALIAS_H_INCLUDED
