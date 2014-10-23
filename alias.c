@@ -203,35 +203,16 @@ bool is_valid_alias(struct alias *alias, char *context, int i) {
 }
 
 /*
-bool is_valid_alias(struct alias *alias, char *context) {
-    if (*context == '\0' || *alias->key == '~')
-        return true;
-    
-    char *contextend = context + strlen(context);   
-    char prev = *(contextend-2);   // the first non-space character preceding the alias in the context string
-    char* prevprev = (contextend-3);
-    bool ret = (prev == '|' || prev == ';' || strncmp(prevprev,"&&", 2) == 0 || strncmp(prevprev,"||", 2) == 0);
-    printdebug("is_valid_alias: '%s', %d", alias->key, ret);
-    return ret;
-}*/
-
-/*
- * @return true if the supplied alias already exists.
- **/
+ * alias_exists: returns whether or not a specified key is currently aliased.
+ * @return true if the supplied alias already exists; else false.
+ */
 bool alias_exists(char* key) {
-	if(head == 0) return false;
+	if (!head) return false;
 
-	bool keepLooping = true;
-	struct alias *curAlias = head;
-	
-    while(keepLooping) {
-		// If we've finished looping through all the aliases without a problem, return false.
-		if(curAlias == 0) return false;
-		
-		// If the current alias matches one we're trying to define, return true.
-		if(strcmp(curAlias->key, key) == 0)	return true;
-		
-		// update curAlias
-		curAlias = curAlias->next;
+	struct alias *curAlias;
+    for (curAlias = head; curAlias != NULL; curAlias = curAlias->next) {
+		// If the current alias matches the argument, return true.
+		if (strcmp(curAlias->key, key) == 0) return true;
 	}
+	return false;
 }
