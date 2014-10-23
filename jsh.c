@@ -1,4 +1,4 @@
-    /* This file is part of jsh.
+/* This file is part of jsh.
  * 
  * jsh (jo-shell): A basic shell implementation
  * Copyright (C) 2014 Jo Van Bulck <jo.vanbulck@student.kuleuven.be>
@@ -45,6 +45,7 @@ void sig_int_handler(int);
 void touch_config_files(void);
 char** jsh_completion(const char*, int, int);
 char *jsh_built_in_generator(const char*, int);
+char *git_completion_generator(const char*, int);
 
 // ########## global variables ##########
 #ifdef NODEBUG
@@ -259,17 +260,30 @@ void things_todo_at_start(void) {
  * jsh_completion: a custom GNU readline completion function for jsh built_in shell commands.
  *  This function is called by readline; if the result is non-NULL, readline wont perform 
  *  the default file completion.
+ * @arg: from the readline manual: "start and end are indices in rl_line_buffer defining 
+ *  the boundaries of text, which is a character string."
  * @return: an array of strings with the possible completions or NULL of no completions.
  */
 char** jsh_completion(const char *text, int start, int end) {
     char **matches = NULL;
  
-    // if this is the first word, try autocompletion for built_ins
-    if (start == 0)
-        matches = rl_completion_matches (text, &jsh_built_in_generator);
-   
+    if (start == 0) {
+        // if this is the first word, try autocompletion for built_ins
+        // TODO also completion for some wide-used commands? user defined?
+        matches = rl_completion_matches(text, &jsh_built_in_generator);
+    }
+    else {
+        // try custom autocompletion for specific commands
+        if (start == 4 && strncmp(rl_line_buffer, "git ", 4) == 0) {
+            // user entered 'git something<TAB>'
+            //printf("start is %d and end is %d\n", start, end);
+            matches = rl_completion_matches(text, &git_completion_generator);            
+        }
+    }
+        
     return matches;
 }
+
 
 /*
  * From the readline doc: "text is the partial word to be completed. state is zero the 
@@ -293,6 +307,30 @@ char *jsh_built_in_generator(const char *text, int state) {
     while (index < nb_built_ins)
         if (strncmp(built_ins[index], text, len) == 0)
             return strclone(built_ins[index++]);
+        else
+            index++;
+    
+    // no matches left
+    return NULL;
+}
+
+char *git_completion_generator(const char *text, int state) {
+    static int len;     // strlen(text): static to reduce overhead
+    static int index;   // the progress in git_options array
+    static const char *git_cmds[] = {"add", "bisect", "branch", "checkout", "clone", \
+    "commit", "diff", "fetch", "grep", "init", "log", "merge", "mv", "pull", "push", \
+    "rebase", "reset", "rm", "show", "status", "tag"};
+    #define nb_git_cmds (sizeof(git_cmds)/sizeof(git_cmds[0]))
+    
+    if (!state) {
+        //initialize the generator to return all matches
+        index = 0;
+        len = strlen(text);
+    }
+    
+    while (index < nb_git_cmds)
+        if (strncmp(git_cmds[index], text, len) == 0)
+            return strclone(git_cmds[index++]);
         else
             index++;
     
