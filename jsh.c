@@ -266,7 +266,12 @@ void things_todo_at_start(void) {
  */
 char** jsh_completion(const char *text, int start, int end) {
     char **matches = NULL;
- 
+    
+    // true iff user entered 'cmd text<TAB>'
+    #define USR_ENTERED(cmd) \
+        (start >= strlen(cmd)+1 && (strncmp(rl_line_buffer + start - strlen(cmd) - 1, \
+        cmd, strlen(cmd)) == 0)) // +1 for space
+     
     if (start == 0) {
         // if this is the first word, try autocompletion for built_ins
         // TODO also completion for some wide-used commands? user defined?
@@ -274,11 +279,8 @@ char** jsh_completion(const char *text, int start, int end) {
     }
     else {
         // try custom autocompletion for specific commands
-        if (start == 4 && strncmp(rl_line_buffer, "git ", 4) == 0) {
-            // user entered 'git something<TAB>'
-            //printf("start is %d and end is %d\n", start, end);
-            matches = rl_completion_matches(text, &git_completion_generator);            
-        }
+        if (USR_ENTERED("git"))
+            matches = rl_completion_matches(text, &git_completion_generator);
     }
         
     return matches;
