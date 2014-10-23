@@ -1,4 +1,4 @@
-/* This file is part of jsh.
+    /* This file is part of jsh.
  * 
  * jsh (jo-shell): A basic shell implementation
  * Copyright (C) 2014 Jo Van Bulck <jo.vanbulck@student.kuleuven.be>
@@ -41,8 +41,10 @@ char *getprompt(int);
 char *readcmd(int status);
 int is_built_in(comd*);
 int parse_built_in(comd*, int);
-void sig_int_handler(int sig);
+void sig_int_handler(int);
 void touch_config_files(void);
+char** jsh_completion(const char*, int, int);
+char *jsh_built_in_generator(const char*, int);
 
 // ########## global variables ##########
 #ifdef NODEBUG
@@ -228,6 +230,9 @@ void things_todo_at_start(void) {
     // register the things_todo_at_exit function atexit
     atexit(things_todo_at_exit);
     
+    // enable custom rl_autocompletion
+    rl_attempted_completion_function = jsh_completion;
+    
     // built-in aliases
     alias("~", gethome());
     
@@ -248,6 +253,51 @@ void things_todo_at_start(void) {
         DEBUG = temp;
         printdebug("debugging is on. Turn it off with 'debug off'.");
     }
+}
+
+/*
+ * jsh_completion: a custom GNU readline completion function for jsh built_in shell commands.
+ *  This function is called by readline; if the result is non-NULL, readline wont perform 
+ *  the default file completion.
+ * @return: an array of strings with the possible completions or NULL of no completions.
+ */
+char** jsh_completion(const char *text, int start, int end) {
+    char **matches = NULL;
+ 
+    // if this is the first word, try autocompletion for built_ins
+    if (start == 0)
+        matches = rl_completion_matches (text, &jsh_built_in_generator);
+   
+    return matches;
+}
+
+/*
+ * From the readline doc: "text is the partial word to be completed. state is zero the 
+ * first time the function is called. The generator function returns (char *) NULL to 
+ * inform rl_completion_matches() that there are no more possibilities left. Usually the 
+ * generator function computes the list of possible completions when state is zero, and 
+ * returns them one at a time on subsequent calls.
+ * Each string the generator function returns as a match must be allocated with malloc(); 
+ * Readline frees the strings when it has finished with them."
+ */
+char *jsh_built_in_generator(const char *text, int state) {
+    static int len;     // strlen(text): static to reduce overhead
+    static int index;   // the progress in built_ins array
+    
+    if (!state) {
+        //initialize the generator to return all matches
+        index = 0;
+        len = strlen(text);
+    }
+    
+    while (index < nb_built_ins)
+        if (strncmp(built_ins[index], text, len) == 0)
+            return strclone(built_ins[index++]);
+        else
+            index++;
+    
+    // no matches left
+    return NULL;
 }
 
 /*

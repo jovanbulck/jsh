@@ -98,6 +98,7 @@ void parsestream(FILE*, char*, void (*f)(char*));
 int string_cmp(const void*, const void*);
 bool is_sorted(void*, size_t, size_t, int (*compar)(const void *, const void *));
 char *gethome();
+char *strclone(const char*);
 char* concat(int, ...);
 // TODO malloc wrapper -- gracious
 
