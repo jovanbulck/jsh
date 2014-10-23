@@ -235,39 +235,3 @@ bool alias_exists(char* key) {
 		curAlias = curAlias->next;
 	}
 }
-
-/*
- * Use to update existing aliases. The alias with the supplied key will be reassigned
- * so that it'll have the supplied value instead of it's current value.
- *
- * @return true if reassignment succeeded. False if it failed.
- **/
-bool existing_alias_update(char* key,char* value) {
-	if(head == 0) return false;
-
-	struct alias *curAlias = head;
-    struct alias *prevAlias = head;
-    struct alias *newAlias = malloc(sizeof(struct alias));
-    newAlias->key = malloc(strlen(key) + 1);
-    strncpy(newAlias->key, key, strlen(key) + 1);
-    newAlias->value = malloc(strlen(value) + 1);
-    strncpy(newAlias->value, value, strlen(value) + 1);
-    newAlias->next = 0;
-
-	while(true) {
-        // if no matching aliases are found, return false.
-		if(curAlias == 0) return false;
-		
-		// If the current alias matches one we're trying to define, return true.
-		if(strcmp(curAlias->key, key) == 0)	{
-			prevAlias->next = newAlias;
-            newAlias->next = curAlias->next;
-            free(curAlias);
-			return true;
-		}
-		
-		// update curAlias
-        prevAlias = curAlias;
-		curAlias = curAlias->next;
-	}
-}
