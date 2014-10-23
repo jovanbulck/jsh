@@ -31,10 +31,13 @@ disable autoloading of the ~/.jshrc file
 .TP
 \fB\-l, \--license\fP
 display licence information and exit
+.TP
+\fB\-v, \--version\fP
+display version information and exit
 .SH FILES
 .TP
 \fI~/.jshrc\fP
-file containing commands to be executed at login
+file containing commands to be executed at login (note using the \fBsource\fP builtin, one can include any other file to be processed at startup)
 .TP
 \fI~/.jsh_login\fP
 file containing the welcome message auto printed at login of an interactive session
