@@ -60,16 +60,16 @@ int alias(char *k, char *v) {
     if(alias_exists(k)) {
         unalias(k);
     }
-	    total_alias_val_length += vallength;
-    
-	    if (head == NULL) {
-	        head = new;
-	        tail = head;
-	    }
-	    else {
-	        tail->next = new;
-	        tail = new;
-	    }
+	total_alias_val_length += vallength;
+
+    if (head == NULL) {
+	    head = new;
+	    tail = head;
+	}
+	else {
+	    tail->next = new;
+	    tail = new;
+	}
     return EXIT_SUCCESS;
 }
 
