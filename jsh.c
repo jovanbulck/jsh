@@ -46,6 +46,7 @@ void touch_config_files(void);
 char** jsh_completion(const char*, int, int);
 char *jsh_built_in_generator(const char*, int);
 char *git_completion_generator(const char*, int);
+char *debug_completion_generator(const char*, int);
 
 // ########## global variables ##########
 #ifdef NODEBUG
@@ -257,6 +258,7 @@ void things_todo_at_start(void) {
 }
 
 /*
+ * TODO all completion stuff in separate file jsh-autocomplete.c or c
  * jsh_completion: a custom GNU readline completion function for jsh built_in shell commands.
  *  This function is called by readline; if the result is non-NULL, readline wont perform 
  *  the default file completion.
@@ -275,17 +277,43 @@ char** jsh_completion(const char *text, int start, int end) {
     if (start == 0) {
         // if this is the first word, try autocompletion for built_ins
         // TODO also completion for some wide-used commands? user defined?
+        // TODO autocomplete aliases defined?
         matches = rl_completion_matches(text, &jsh_built_in_generator);
     }
     else {
         // try custom autocompletion for specific commands
         if (USR_ENTERED("git"))
             matches = rl_completion_matches(text, &git_completion_generator);
+        else if (USR_ENTERED("debug"))
+            matches = rl_completion_matches(text, &debug_completion_generator);
     }
         
     return matches;
 }
 
+/*
+ * A sketleton to facilitate the implementation of the custom completion generators.
+ */
+#define COMPLETION_SKELETON(array) \
+    do { \
+        static int len; \
+        static int index; \
+        int nb_elements = (sizeof(array)/sizeof(array[0])); \
+        \
+        if (!state) { \
+            index = 0; \
+            len = strlen(text); \
+        } \
+        \
+        while (index < nb_elements) \
+            if (strncmp(array[index], text, len) == 0) \
+                return strclone(array[index++]); \
+            else \
+                index++; \
+        \
+        return NULL; \
+        } \
+    while (0)
 
 /*
  * From the readline doc: "text is the partial word to be completed. state is zero the 
@@ -297,48 +325,21 @@ char** jsh_completion(const char *text, int start, int end) {
  * Readline frees the strings when it has finished with them."
  */
 char *jsh_built_in_generator(const char *text, int state) {
-    static int len;     // strlen(text): static to reduce overhead
-    static int index;   // the progress in built_ins array
-    
-    if (!state) {
-        //initialize the generator to return all matches
-        index = 0;
-        len = strlen(text);
-    }
-    
-    while (index < nb_built_ins)
-        if (strncmp(built_ins[index], text, len) == 0)
-            return strclone(built_ins[index++]);
-        else
-            index++;
-    
-    // no matches left
-    return NULL;
+    COMPLETION_SKELETON(built_ins);
 }
 
 char *git_completion_generator(const char *text, int state) {
-    static int len;     // strlen(text): static to reduce overhead
-    static int index;   // the progress in git_options array
     static const char *git_cmds[] = {"add", "bisect", "branch", "checkout", "clone", \
     "commit", "diff", "fetch", "grep", "init", "log", "merge", "mv", "pull", "push", \
     "rebase", "reset", "rm", "show", "status", "tag"};
-    #define nb_git_cmds (sizeof(git_cmds)/sizeof(git_cmds[0]))
-    
-    if (!state) {
-        //initialize the generator to return all matches
-        index = 0;
-        len = strlen(text);
-    }
-    
-    while (index < nb_git_cmds)
-        if (strncmp(git_cmds[index], text, len) == 0)
-            return strclone(git_cmds[index++]);
-        else
-            index++;
-    
-    // no matches left
-    return NULL;
+    COMPLETION_SKELETON(git_cmds);
 }
+
+char *debug_completion_generator(const char *text, int state) {
+    static const char *options[] = {"on", "off"};
+    COMPLETION_SKELETON(options);
+}
+
 
 /*
  * create_config_files: looks for the jsh config files;
