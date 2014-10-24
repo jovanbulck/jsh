@@ -34,6 +34,7 @@ struct alias *head = NULL;
 struct alias *tail = NULL;
 
 int total_alias_val_length = 0;
+int nb_aliases = 0;
 
 /*
  * alias: create a mapping between a key and value pair that can be resolved with resolvealiases().
@@ -70,6 +71,7 @@ int alias(char *k, char *v) {
 	    tail->next = new;
 	    tail = new;
 	}
+	nb_aliases++;
     return EXIT_SUCCESS;
 }
 
@@ -92,6 +94,7 @@ int unalias(char *key) {
             // free the unalised alias and return
             total_alias_val_length -= strnlen(cur->value, MAX_ALIAS_VAL_LENGTH);
             free(cur);
+            nb_aliases--;
             return EXIT_SUCCESS;;
         }
         prev = cur;
@@ -112,6 +115,20 @@ int printaliases() {
         cur = cur->next;
     }
     return EXIT_SUCCESS;
+}
+
+char **get_all_alias_keys(int *nb_keys) {
+    char **ret = malloc(sizeof(char*) * nb_aliases);
+
+    int i = 0;
+    struct alias *cur = head;
+    while(cur != NULL) {
+        ret[i] = cur->key;  //todo strclone and double free or so?
+        cur = cur->next;
+        i++;
+    }
+    if (nb_keys) *nb_keys = nb_aliases;
+    return ret;
 }
 
 
@@ -165,7 +182,7 @@ char *resolvealiases(char *s) {
  *  @param context: the context string where the command occurs
  *  @param i: the index in the context string where the command occurs: context+i equals cmd
  */
-bool is_valid_cmd(char* cmd, char* context, int i) {
+bool is_valid_cmd(const char* cmd, const char* context, int i) {
     #if ASSERT
         assert(strncmp(context+i, cmd, strlen(cmd)) == 0);
     #endif

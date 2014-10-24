@@ -45,6 +45,9 @@ void sig_int_handler(int);
 void touch_config_files(void);
 char** jsh_completion(const char*, int, int);
 char *jsh_built_in_generator(const char*, int);
+char *jsh_alias_generator(const char*, int);
+char *jsh_options_generator(const char*, int);
+char *jsh_widely_used_cmds_generator(const char*, int);
 char *git_completion_generator(const char*, int);
 char *debug_completion_generator(const char*, int);
 char *git_branch_completion_generator(const char*, int);
@@ -75,6 +78,13 @@ const char *built_ins[] = {"", "F", "T", "alias", "cd", "color", "debug",\
 #define nb_built_ins (sizeof(built_ins)/sizeof(built_ins[0]))
 enum built_in {EMPTY, F, T, ALIAS, CD, CLR, DBG, EXIT, HIST, PROMPT, SHCAT, SRC, UNALIAS};
 typedef enum built_in built_in;
+
+// hackhackhack
+const char *widely_used_cmds[] = {"git", "cat", "grep", "ls", "exit", "sudo", "kill", \
+"killall", "links", "find", "clear", "chmod", "echo", "make", "poweroff", "reboot", \
+"pacman", "aptitude", "apt-cache", "apt-get", "man", "nano", "vi", "gcc", "jsh", "zsh", \
+"bash"};
+#define nb_widely_used_cmds (sizeof(widely_used_cmds)/sizeof(widely_used_cmds[0]))
 
 /*
  *
@@ -277,11 +287,13 @@ char** jsh_completion(const char *text, int start, int end) {
         (start >= strlen(cmd)+1 && (strncmp(rl_line_buffer + start - strlen(cmd) - 1, \
         cmd, strlen(cmd)) == 0)) // +1 for space
      
-    if (is_valid_cmd(text, rl_line_buffer, start)) { //(start == 0) {
-        // if this is the first word, try autocompletion for built_ins
+    if (is_valid_cmd(text, rl_line_buffer, start)) {
+        // try custom autocompletion iff this is a valid comd context
+        if (!(matches = rl_completion_matches(text, &jsh_alias_generator)))
+            if (!(matches = rl_completion_matches(text, &jsh_built_in_generator)))
+                matches = rl_completion_matches(text, &jsh_widely_used_cmds_generator);
+        
         // TODO also completion for some wide-used commands? user defined?
-        // TODO autocomplete aliases defined?
-        matches = rl_completion_matches(text, &jsh_built_in_generator);
     }
     else {
         // try custom autocompletion for specific commands
@@ -292,8 +304,11 @@ char** jsh_completion(const char *text, int start, int end) {
             if (parseexpr(strclone("git rev-parse --git-dir > /dev/null 2> /dev/null")) == EXIT_SUCCESS) {
                 // we're in a valid git repo
                 return rl_completion_matches(text, &git_branch_completion_generator);
+                //TODO free the cloned string above...
             }
         }
+        else if (USR_ENTERED("jsh"))
+            matches = rl_completion_matches(text, &jsh_options_generator);
         else if (USR_ENTERED("debug"))
             matches = rl_completion_matches(text, &debug_completion_generator);
         else if (USR_ENTERED("apt"))
@@ -306,11 +321,10 @@ char** jsh_completion(const char *text, int start, int end) {
 /*
  * A sketleton to facilitate the implementation of the custom completion generators.
  */
-#define COMPLETION_SKELETON(array) \
+#define COMPLETION_SKELETON(array, nb_elements) \
     do { \
         static int len; \
         static int index; \
-        int nb_elements = (sizeof(array)/sizeof(array[0])); \
         \
         if (!state) { \
             index = 0; \
@@ -337,30 +351,61 @@ char** jsh_completion(const char *text, int start, int end) {
  * Readline frees the strings when it has finished with them."
  */
 char *jsh_built_in_generator(const char *text, int state) {
-    COMPLETION_SKELETON(built_ins);
+    COMPLETION_SKELETON(built_ins, nb_built_ins);
+}
+
+char *jsh_alias_generator(const char *text, int state) {
+    static char **alias_keys = NULL;
+    static int nb_alias_keys;
+    if (!state) {
+        if (alias_keys)
+            free(alias_keys);
+        alias_keys = get_all_alias_keys(&nb_alias_keys);
+    }
+    COMPLETION_SKELETON(alias_keys, nb_alias_keys); 
+}
+
+char *jsh_widely_used_cmds_generator(const char *text, int state) {
+    COMPLETION_SKELETON(widely_used_cmds, nb_widely_used_cmds);
 }
 
 char *git_completion_generator(const char *text, int state) {
     static const char *git_cmds[] = {"add", "bisect", "branch", "checkout", "clone", \
     "commit", "diff", "fetch", "grep", "init", "log", "merge", "mv", "pull", "push", \
     "rebase", "reset", "rm", "show", "status", "tag"};
-    COMPLETION_SKELETON(git_cmds);
+    static const int nb_elements = (sizeof(git_cmds)/sizeof(git_cmds[0]));
+      
+    COMPLETION_SKELETON(git_cmds, nb_elements);
 }
 
 char *debug_completion_generator(const char *text, int state) {
     static const char *options[] = {"on", "off"};
-    COMPLETION_SKELETON(options);
+    static const int nb_options = (sizeof(options)/sizeof(options[0]));
+    
+    COMPLETION_SKELETON(options, nb_options);
+}
+
+char *jsh_options_generator(const char *text, int state) {
+    static const char *options[] = {"--nodebug", "--debug", "--color", "--nocolor", \
+    "--norc", "--license", "--version", "--help"}; //TODO dont hardcode here?
+    static const int nb_options = (sizeof(options)/sizeof(options[0]));
+    
+    COMPLETION_SKELETON(options, nb_options);
 }
 
 char *apt_compl_generator(const char *text, int state) {
     static const char *options[] = { "list", "search", "show", "install", "remove", \
     "edit-sources", "update", "upgrade", "full-upgrade"};
-    COMPLETION_SKELETON(options);
+    static const int nb_elements = (sizeof(options)/sizeof(options[0]));
+    
+    COMPLETION_SKELETON(options, nb_elements);
 }
 
 char *git_branch_completion_generator(const char *text, int state) {
     static const char *branches[] = {"some", "proof-of-concept", "git", "branches"};
-    COMPLETION_SKELETON(branches);
+    static const int nb_elements = (sizeof(branches)/sizeof(branches[0]));
+    
+    COMPLETION_SKELETON(branches, nb_elements);
     
     /*static int len;
     static int index;
