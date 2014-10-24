@@ -404,16 +404,18 @@ char *apt_compl_generator(const char *text, int state) {
 }
 
 char *git_branch_completion_generator(const char *text, int state) {
-    /*static const char *branches[] = {"some", "proof-of-concept", "git", "branches"};
-    static const int nb_elements = (sizeof(branches)/sizeof(branches[0]));*/
-    #define MAX_NB_BRANCHES 100
+    #define MAX_NB_BRANCHES 100     // hackhackhack
     #define MAX_BRANCH_NAME_LEN 100
     static char **branches = NULL;
     static int nb_elements = 0;
     
     if (!state) {
-        /*if (branches)
-            free(branches);*/ //TODO free also internal
+        if (branches) {
+            int i;
+            for (i = 0; i < MAX_NB_BRANCHES && branches[i]; i++)
+                free(branches[i]);
+            free(branches);
+        }
         branches =  malloc((sizeof(char*) * MAX_NB_BRANCHES));
         FILE *fp = popen("git branch --no-color", "r");
         
@@ -448,24 +450,7 @@ char *git_branch_completion_generator(const char *text, int state) {
         pclose(fp);
     }
     
-     static int len; \
-        static int index; \
-        \
-        if (!state) { \
-            index = 0; \
-            len = strlen(text); \
-        } \
-        \
-        while (index < nb_elements) \
-            if (strncmp(branches[index], text, len) == 0) \
-                return strclone(branches[index++]); \
-            else \
-                index++; \
-        \
-        return NULL; \
-    
-    
-    //COMPLETION_SKELETON(branches, nb_elements);
+    COMPLETION_SKELETON(branches, nb_elements);
     
     /*static int len;
     static int index;
