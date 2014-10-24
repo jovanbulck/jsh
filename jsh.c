@@ -404,10 +404,68 @@ char *apt_compl_generator(const char *text, int state) {
 }
 
 char *git_branch_completion_generator(const char *text, int state) {
-    static const char *branches[] = {"some", "proof-of-concept", "git", "branches"};
-    static const int nb_elements = (sizeof(branches)/sizeof(branches[0]));
+    /*static const char *branches[] = {"some", "proof-of-concept", "git", "branches"};
+    static const int nb_elements = (sizeof(branches)/sizeof(branches[0]));*/
+    #define MAX_NB_BRANCHES 100
+    #define MAX_BRANCH_NAME_LEN 100
+    static char **branches = NULL;
+    static int nb_elements = 0;
     
-    COMPLETION_SKELETON(branches, nb_elements);
+    if (!state) {
+        /*if (branches)
+            free(branches);*/ //TODO free also internal
+        branches =  malloc((sizeof(char*) * MAX_NB_BRANCHES));
+        FILE *fp = popen("git branch --no-color", "r");
+        
+        nb_elements = 0;
+        int i;
+        bool done = false;
+        for (i= 0; i < MAX_NB_BRANCHES && !done; i++) {
+            branches[i] =  malloc(MAX_BRANCH_NAME_LEN * sizeof(char));
+            //if (!fgets(branches[i], MAX_BRANCH_NAME_LEN, fp)) break;
+            char *cur = branches[i];
+            int j = 0;
+            int c;
+            while (true) {
+                int c = getc(fp);
+                if (c == EOF) {
+                    done = true;
+                    cur[j] = '\0';
+                    break;
+                }
+                if (c == '\n') {
+                    cur[j] = '\0';
+                    break;
+                }
+                else if (c != ' ' && c != '*') {
+                    cur[j++] = c;
+                }
+            }
+            
+            nb_elements++;
+        }
+        
+        pclose(fp);
+    }
+    
+     static int len; \
+        static int index; \
+        \
+        if (!state) { \
+            index = 0; \
+            len = strlen(text); \
+        } \
+        \
+        while (index < nb_elements) \
+            if (strncmp(branches[index], text, len) == 0) \
+                return strclone(branches[index++]); \
+            else \
+                index++; \
+        \
+        return NULL; \
+    
+    
+    //COMPLETION_SKELETON(branches, nb_elements);
     
     /*static int len;
     static int index;
