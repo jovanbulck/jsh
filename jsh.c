@@ -48,6 +48,7 @@ char *jsh_built_in_generator(const char*, int);
 char *git_completion_generator(const char*, int);
 char *debug_completion_generator(const char*, int);
 char *git_branch_completion_generator(const char*, int);
+char *apt_compl_generator(const char*, int);
 
 // ########## global variables ##########
 #ifdef NODEBUG
@@ -295,6 +296,8 @@ char** jsh_completion(const char *text, int start, int end) {
         }
         else if (USR_ENTERED("debug"))
             matches = rl_completion_matches(text, &debug_completion_generator);
+        else if (USR_ENTERED("apt"))
+            matches = rl_completion_matches(text, &apt_compl_generator);
     }
         
     return matches;
@@ -346,6 +349,12 @@ char *git_completion_generator(const char *text, int state) {
 
 char *debug_completion_generator(const char *text, int state) {
     static const char *options[] = {"on", "off"};
+    COMPLETION_SKELETON(options);
+}
+
+char *apt_compl_generator(const char *text, int state) {
+    static const char *options[] = { "list", "search", "show", "install", "remove", \
+    "edit-sources", "update", "upgrade", "full-upgrade"};
     COMPLETION_SKELETON(options);
 }
 
