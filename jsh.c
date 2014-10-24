@@ -277,7 +277,7 @@ char** jsh_completion(const char *text, int start, int end) {
         (start >= strlen(cmd)+1 && (strncmp(rl_line_buffer + start - strlen(cmd) - 1, \
         cmd, strlen(cmd)) == 0)) // +1 for space
      
-    if (start == 0) {
+    if (is_valid_cmd(text, rl_line_buffer, start)) { //(start == 0) {
         // if this is the first word, try autocompletion for built_ins
         // TODO also completion for some wide-used commands? user defined?
         // TODO autocomplete aliases defined?

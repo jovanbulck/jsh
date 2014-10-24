@@ -155,6 +155,43 @@ char *resolvealiases(char *s) {
     return ret;
 }
 
+
+/* TODO no code duplication...
+ *
+ * is_valid_cmd: returns whether or not an occurence of a cmd string is valid in a given 
+ *  context string. An cmd is valid iff it occurs as a comd in the grammar.
+ *
+ *  @param cmd: the command string to be checked
+ *  @param context: the context string where the command occurs
+ *  @param i: the index in the context string where the command occurs: context+i equals cmd
+ */
+bool is_valid_cmd(char* cmd, char* context, int i) {
+    #if ASSERT
+        assert(strncmp(context+i, cmd, strlen(cmd)) == 0);
+    #endif
+    
+    // check the context following the cmd occurence
+    char *after = context + i + strlen(cmd);
+    bool after_ok = (*after == ' ' || *after == '\0' || *after == '|' || *after == ';' || *after == ')' ||
+        (strncmp(after, "&&", 2) == 0) || (strncmp(after, "||", 2) == 0));
+    
+    if (!after_ok)
+        return false;
+    
+    // check the context preceding the alias occurence
+    char *before = context + i;
+    int nb_before = i;
+    while (nb_before > 0 && (*(before-1) == ' ' || *(before-1) == '(')) {
+        before--;
+        nb_before--;
+    }
+    
+    bool before_ok = ( nb_before == 0 || (*(before-1) == '|' || *(before-1) == ';') || 
+        (nb_before >= 2 && (strncmp(before-2, "&&", 2) == 0 || strncmp(before-2, "||", 2) == 0)));
+    
+    return before_ok;
+}
+
 /*
  * is_valid_alias: returns whether or not an occurence of an alias key is valid (i.e. must be 
  *  replaced by its value) in a given context string. An alias match is valid iff it occurs 
