@@ -47,6 +47,7 @@ char** jsh_completion(const char*, int, int);
 char *jsh_built_in_generator(const char*, int);
 char *git_completion_generator(const char*, int);
 char *debug_completion_generator(const char*, int);
+char *git_branch_completion_generator(const char*, int);
 
 // ########## global variables ##########
 #ifdef NODEBUG
@@ -258,7 +259,8 @@ void things_todo_at_start(void) {
 }
 
 /*
- * TODO all completion stuff in separate file jsh-autocomplete.c or c
+ * TODO all completion stuff in separate file jsh-autocomplete.c or so
+ *
  * jsh_completion: a custom GNU readline completion function for jsh built_in shell commands.
  *  This function is called by readline; if the result is non-NULL, readline wont perform 
  *  the default file completion.
@@ -284,6 +286,13 @@ char** jsh_completion(const char *text, int start, int end) {
         // try custom autocompletion for specific commands
         if (USR_ENTERED("git"))
             matches = rl_completion_matches(text, &git_completion_generator);
+        else if (USR_ENTERED("git checkout") || USR_ENTERED("git branch") || 
+                 USR_ENTERED("git merge")) {
+            if (parseexpr(strclone("git rev-parse --git-dir > /dev/null 2> /dev/null")) == EXIT_SUCCESS) {
+                // we're in a valid git repo
+                return rl_completion_matches(text, &git_branch_completion_generator);
+            }
+        }
         else if (USR_ENTERED("debug"))
             matches = rl_completion_matches(text, &debug_completion_generator);
     }
@@ -338,6 +347,60 @@ char *git_completion_generator(const char *text, int state) {
 char *debug_completion_generator(const char *text, int state) {
     static const char *options[] = {"on", "off"};
     COMPLETION_SKELETON(options);
+}
+
+char *git_branch_completion_generator(const char *text, int state) {
+    static const char *branches[] = {"some", "proof-of-concept", "git", "branches"};
+    COMPLETION_SKELETON(branches);
+    
+    /*static int len;
+    static int index;
+    static int nb;
+    
+    if (!state) {
+        // get all the branches in the cwd
+        len = strlen(text);
+        index = 0;
+        nb = 0;
+        if (parseexpr(strclone("git branch --no-color > my_help_file 2> /dev/null")) != EXIT_SUCCESS)
+            return NULL;
+        /*parsefile("my_help_file", (void (*)(char*)) printf, false);
+        printdebug("now opening");
+        FILE *file = fopen("my_help_file", "r");
+        if (!file) {
+            printdebug("oooh");
+            return NULL;
+        }
+        printdebug("open");
+        int c, i = 0;
+        char *line;
+        c = fgetc(file);
+        while (c != EOF) {
+        printdebug("in while with '%c' ", c);
+            if (c == '\n') {
+                printdebug("%dth new line", nb);
+                line[i] = '\0';
+                branches[nb++] = strclone(line);
+                i = 0;
+            }
+            else {
+                line[i++] = c;
+            }
+            c = fgetc(file);
+        }
+        
+        fclose(file);
+        printdebug("closed");*/
+    //}
+    
+    /*while (index < nb)
+            if (strncmp(branches[index], text, len) == 0)
+                return strclone(branches[index++]);
+            else 
+                index++; 
+         
+        return NULL;*/
+    
 }
 
 
