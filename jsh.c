@@ -289,30 +289,32 @@ char** jsh_completion(const char *text, int start, int end) {
      
     if (is_valid_cmd(text, rl_line_buffer, start)) {
         // try custom autocompletion iff this is a valid comd context
-        if (!(matches = rl_completion_matches(text, &jsh_alias_generator)))
-            if (!(matches = rl_completion_matches(text, &jsh_built_in_generator)))
+        if (!(matches = rl_completion_matches(text, &jsh_built_in_generator)))
+            if (!(matches = rl_completion_matches(text, &jsh_alias_generator)))
                 matches = rl_completion_matches(text, &jsh_widely_used_cmds_generator);
-        
-        // TODO also completion for some wide-used commands? user defined?
+        //TODO maybe a single generator instead of 3 separate onew
     }
     else {
-        // try custom autocompletion for specific commands
-        if (USR_ENTERED("git"))
+        // else try custom autocompletion for specific commands
+        if (USR_ENTERED("git")) {
             matches = rl_completion_matches(text, &git_completion_generator);
-        else if (USR_ENTERED("git checkout") || USR_ENTERED("git branch") || 
-                 USR_ENTERED("git merge")) {
-            if (parseexpr(strclone("git rev-parse --git-dir > /dev/null 2> /dev/null")) == EXIT_SUCCESS) {
-                // we're in a valid git repo
-                return rl_completion_matches(text, &git_branch_completion_generator);
-                //TODO free the cloned string above...
-            }
         }
-        else if (USR_ENTERED("jsh"))
+        else if (USR_ENTERED("git checkout") || USR_ENTERED("git branch") || 
+         USR_ENTERED("git merge")) {
+            char *pwd_is_git = strclone("git rev-parse --git-dir > /dev/null 2> /dev/null");
+            if (parseexpr(pwd_is_git) == EXIT_SUCCESS)
+                matches = rl_completion_matches(text, &git_branch_completion_generator);
+            free(pwd_is_git);
+        }
+        else if (USR_ENTERED("jsh")) {
             matches = rl_completion_matches(text, &jsh_options_generator);
-        else if (USR_ENTERED("debug"))
+        }
+        else if (USR_ENTERED("debug")) {
             matches = rl_completion_matches(text, &debug_completion_generator);
-        else if (USR_ENTERED("apt"))
+        }
+        else if (USR_ENTERED("apt")) {
             matches = rl_completion_matches(text, &apt_compl_generator);
+        }
     }
         
     return matches;

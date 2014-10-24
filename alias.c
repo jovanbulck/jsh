@@ -188,7 +188,7 @@ bool is_valid_cmd(const char* cmd, const char* context, int i) {
     #endif
     
     // check the context following the cmd occurence
-    char *after = context + i + strlen(cmd);
+    const char *after = context + i + strlen(cmd);
     bool after_ok = (*after == ' ' || *after == '\0' || *after == '|' || *after == ';' || *after == ')' ||
         (strncmp(after, "&&", 2) == 0) || (strncmp(after, "||", 2) == 0));
     
@@ -196,7 +196,7 @@ bool is_valid_cmd(const char* cmd, const char* context, int i) {
         return false;
     
     // check the context preceding the alias occurence
-    char *before = context + i;
+    const char *before = context + i;
     int nb_before = i;
     while (nb_before > 0 && (*(before-1) == ' ' || *(before-1) == '(')) {
         before--;
