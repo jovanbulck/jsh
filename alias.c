@@ -224,14 +224,14 @@ bool is_valid_alias(struct alias *alias, char *context, int i) {
         assert(strncmp(context+i, alias->key, strlen(alias->key)) == 0);
     #endif
     
-    // allow escaping '\' of aliases
+    // allow escaping '\' of aliases TODO is this usefull? --> yes for the ~ alias hack
     if ( i > 0 && *(context+i-1) == '\\' ) {
         printdebug("alias: escaping '%s'", alias->key);
-        memmove(context+i-1, context+i, strlen(context+i)+1);
+        memmove(context+i-1, context+i, strlen(context+i)+1); //TODO this function shouldn't change the given context
         return false;
     }
     
-    // built_in aliases are valid in any context
+    // built_in aliases are valid in any context TODO unless escaped...
     if (*alias->key == '~')
         return true;
     
