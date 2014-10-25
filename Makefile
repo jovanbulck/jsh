@@ -24,10 +24,11 @@ JSH_RELEASE_DIR         = ./JSH_$(RELEASE_NB)_RELEASE
 
 DATE                    = $(shell date +%d\ %b\ %Y)
 HOUR                    = $(shell date +%Hh%M)
-MACHINE                 = $(shell uname -srm)
+MACHINE_BUILT           = $(shell uname -srm)
+MACHINE_RELEASE         = $(shell uname -sm)
 RELEASE_NB              = 1.1.0
-RELEASE_VERSION_STR     = "jsh $(RELEASE_NB) on $(MACHINE) (official release $(DATE))"
-DEV_BUILT_VERSION_STR   = "jsh post $(RELEASE_NB) on $(MACHINE) \n(developer built $(DATE) : $(HOUR))"
+RELEASE_VERSION_STR     = "jsh $(RELEASE_NB) on $(MACHINE_RELEASE) (official release $(DATE))"
+DEV_BUILT_VERSION_STR   = "jsh post $(RELEASE_NB) on $(MACHINE_BUILT) \n(developer built $(DATE) : $(HOUR))"
 VERSION_STR             = $(DEV_BUILT_VERSION_STR)
 # 'make release' will override the above line to RELEASE_VERSION_STR
 
