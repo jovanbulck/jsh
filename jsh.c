@@ -45,6 +45,7 @@ void sig_int_handler(int);
 void touch_config_files(void);
 char** jsh_completion(const char*, int, int);
 char *jsh_built_in_generator(const char*, int);
+char *my_generator(const char*, int);
 char *jsh_alias_generator(const char*, int);
 char *jsh_options_generator(const char*, int);
 char *jsh_widely_used_cmds_generator(const char*, int);
@@ -289,9 +290,9 @@ char** jsh_completion(const char *text, int start, int end) {
      
     if (is_valid_cmd(text, rl_line_buffer, start)) {
         // try custom autocompletion iff this is a valid comd context
-        if (!(matches = rl_completion_matches(text, &jsh_built_in_generator)))
-            if (!(matches = rl_completion_matches(text, &jsh_alias_generator)))
-                matches = rl_completion_matches(text, &jsh_widely_used_cmds_generator);
+        /*if (!(matches = rl_completion_matches(text, &jsh_built_in_generator)))
+            if (!(matches = rl_completion_matches(text, &jsh_alias_generator)))*/
+                matches = rl_completion_matches(text, &my_generator);
         //TODO maybe a single generator instead of 3 separate onew
     }
     else {
@@ -354,6 +355,25 @@ char** jsh_completion(const char *text, int start, int end) {
  */
 char *jsh_built_in_generator(const char *text, int state) {
     COMPLETION_SKELETON(built_ins, nb_built_ins);
+}
+
+char *my_generator(const char *text, int state) {
+    // a separate state for each helper generator, so that it starts from zero
+    static int alias_state = 0;
+    static int built_in_state = 0;
+    static int unix_state = 0;
+    
+    if (!state) {
+        alias_state = 0;
+        built_in_state = 0;
+        unix_state = 0;
+    }
+    
+    char *rv;    
+    if (!(rv = jsh_alias_generator(text, alias_state++)))
+        if (!(rv = jsh_built_in_generator(text, built_in_state++)))
+            rv = jsh_widely_used_cmds_generator(text, unix_state++);
+    return rv;
 }
 
 char *jsh_alias_generator(const char *text, int state) {

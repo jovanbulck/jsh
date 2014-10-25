@@ -197,14 +197,15 @@ bool is_valid_cmd(const char* cmd, const char* context, int i) {
     
     // check the context preceding the alias occurence
     const char *before = context + i;
-    int nb_before = i;
-    while (nb_before > 0 && (*(before-1) == ' ' || *(before-1) == '(')) {
+    int index_before = i;
+    while (index_before > 0 && (*(before-1) == ' ' || *(before-1) == '(')) {
         before--;
-        nb_before--;
+        index_before--;
     }
     
-    bool before_ok = ( nb_before == 0 || (*(before-1) == '|' || *(before-1) == ';') || 
-        (nb_before >= 2 && (strncmp(before-2, "&&", 2) == 0 || strncmp(before-2, "||", 2) == 0)));
+    bool before_ok = ( index_before == 0 || (*(before-1) == '|' || *(before-1) == ';') || 
+        (index_before >= 2 && (strncmp(before-2, "&&", 2) == 0 || strncmp(before-2, "||", 2) == 0))
+        || (index_before >= 4 && strncmp(before-4, "sudo", 4) == 0));
     
     return before_ok;
 }
@@ -251,7 +252,8 @@ bool is_valid_alias(struct alias *alias, char *context, int i) {
     }
     
     bool before_ok = ( nb_before == 0 || (*(before-1) == '|' || *(before-1) == ';') || 
-        (nb_before >= 2 && (strncmp(before-2, "&&", 2) == 0 || strncmp(before-2, "||", 2) == 0)));
+        (nb_before >= 2 && (strncmp(before-2, "&&", 2) == 0 || strncmp(before-2, "||", 2) == 0))
+        || (nb_before >= 4 && strncmp(before-4, "sudo", 4) == 0));
     
     return before_ok;
 }
