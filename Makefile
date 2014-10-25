@@ -22,7 +22,7 @@ JSH_INSTALL_DIR         = /usr/local/bin
 MANPAGE_INSTALL_DIR     = /usr/local/share/man/man1
 
 CC                      = gcc
-CFLAGS                  = -g
+CFLAGS                  = -g -DVERSION="\"jsh post 1.1.0 (developer built)\""
 INSTALL_CFLAGS          = -DNODEBUG
 LIBS                    = -lreadline
 LN                      = $(CC) $(CFLAGS) jsh-common.o jsh.o alias.o -o jsh $(LIBS)
@@ -53,7 +53,7 @@ link: jsh-common.o jsh.o alias.o
 .PHONY: install
 install:
 	@echo "making jsh with additional $(INSTALL_CFLAGS) flags"
-	$(MAKE) --always-make CFLAGS="$(CFLAGS) $(INSTALL_CFLAGS)"
+	$(MAKE) --always-make CFLAGS='$(CFLAGS) $(INSTALL_CFLAGS)'
 	@echo "installing jsh executable in directory $(JSH_INSTALL_DIR)..."
 	@test -d $(JSH_INSTALL_DIR) || (mkdir -p $(JSH_INSTALL_DIR) && echo "created directory $(JSH_INSTALL_DIR)")
 	@install -m 0755 jsh $(JSH_INSTALL_DIR);
