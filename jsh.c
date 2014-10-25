@@ -27,7 +27,7 @@
 
 // ########## macro definitions ##########
 #ifndef VERSION
-    #define VERSION             "jsh 1.1.0"
+    #define VERSION             "jsh: unknown built" // makefile normally fills in the version info
 #endif
 #define HISTFILE                ".jsh_history"
 #define RCFILE                  ".jshrc"
