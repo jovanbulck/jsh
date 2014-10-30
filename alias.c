@@ -142,7 +142,7 @@ char **get_all_alias_keys(unsigned int *nb_keys, bool only_on_change) {
     int i = 0;
     struct alias *cur = head;
     while(cur != NULL) {
-        ret[i] = strclone(cur->key);  //todo strclone and double free or so?
+        ret[i] = strclone(cur->key);
         cur = cur->next;
         i++;
     }
