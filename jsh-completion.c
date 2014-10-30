@@ -29,6 +29,7 @@ char *git_branch_completion_generator(const char*, int);
 char *apt_compl_generator(const char*, int);
 char *jsh_options_generator(const char*, int);
 char *debug_completion_generator(const char*, int);
+char *make_options_generator(const char*, int);
 
 /*
  * The function that is called by readline; returns a list of matches or NULL iff no matches
@@ -62,6 +63,9 @@ char** jsh_command_completion(const char *text, int start, int end) {
         }*/
         else if (USR_ENTERED("jsh")) {
             matches = rl_completion_matches(text, &jsh_options_generator);
+        }
+        else if (USR_ENTERED("make")) {
+             matches = rl_completion_matches(text, &make_options_generator);
         }
         else if (USR_ENTERED("debug")) {
             matches = rl_completion_matches(text, &debug_completion_generator);
@@ -214,11 +218,23 @@ char *debug_completion_generator(const char *text, int state) {
 }
 
 /*
+ * make_completion_generator: a readline completion generator for GNU make
+ */
+char *make_options_generator(const char *text, int state) {
+    static const char *options[] = { "--always-make", "--environment-overrides", \
+    "--ignore-errors", "--keep-going", "install", "--no-keep-going", "--stop", "install", \
+    "clean", "help"};
+    static const int nb_elements = (sizeof(options)/sizeof(options[0]));
+    
+    COMPLETION_SKELETON(options, nb_elements);
+}
+
+/*
  * jsh_options_generator: a readline completion generator for "jsh --options"
  */
 char *jsh_options_generator(const char *text, int state) {
     static const char *options[] = {"--nodebug", "--debug", "--color", "--nocolor", \
-    "--norc", "--license", "--version", "--help"}; //TODO dont hardcode here?
+    "--norc", "--license", "--version", "--help"}; //TODO dont hardcode here --> put enum in jsh.c?
     static const int nb_options = (sizeof(options)/sizeof(options[0]));
     
     COMPLETION_SKELETON(options, nb_options);
@@ -237,6 +253,7 @@ char *apt_compl_generator(const char *text, int state) {
 
 /*
  * git_branch_completion_generator : a readline completion generator for git branch names
+ * TODO this is not yet stable
  */
 char *git_branch_completion_generator(const char *text, int state) {
     #define MAX_NB_BRANCHES 100     // hackhackhack

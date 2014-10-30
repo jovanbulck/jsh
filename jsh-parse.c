@@ -63,7 +63,7 @@
 
 #define RESOLVE_TRUTH_VAL(rv) ((rv == EXIT_SUCCESS)? 'T' : 'F') // note: 'T' and 'F' are built-ins
 
-// #################### helper function declarations ####################
+// #################### helper function definitions ####################
 comd *createcomd(char**);
 void freecomdlist(comd*);
 int parsecmd(char**, int);

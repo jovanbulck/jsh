@@ -22,6 +22,7 @@
 /* ^^ these are the include guards */
 
 #include "jsh-common.h"
+#include "jsh-parse.h"
 
 int alias(char*, char*);
 int unalias(char* key);
