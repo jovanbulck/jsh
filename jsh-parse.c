@@ -59,23 +59,13 @@
  * TODO     alias replacement between () for truth value?
  */
 
+#include "jsh-parse.h"
+
 #define RESOLVE_TRUTH_VAL(rv) ((rv == EXIT_SUCCESS)? 'T' : 'F') // note: 'T' and 'F' are built-ins
 
-struct comd {
-    char **cmd;         // NULL-terminated array of pointers to the command's name and its arguments
-    int length;         // the length of the **cmd array: cmd[length] = NULL
-    char *inf;          // name of the file for redirecting stdin or NULL
-    char *outf;         // name of the file for redirecting stdout or NULL
-    char *errf;         // name of the file for redirecting stderr or NULL
-    int append_out;     // whether or not stdout should append to the file, if redirected
-    struct comd *next;  // pointer to the next comd in the pipeline or NULL if no next
-};
-typedef struct comd comd;
-
-// ########## function declarations ##########
+// #################### helper function declarations ####################
 comd *createcomd(char**);
 void freecomdlist(comd*);
-int parseexpr(char*);
 int parsecmd(char**, int);
 int execute(comd*, int);
 void redirectstreams(comd*, int, int);
@@ -537,4 +527,40 @@ void redirectstreams(comd *cmd, int stdinfd, int stdoutfd) {
         printdebug("redirecting stdout to pipefd %d", stdoutfd);        
         REDIRECT_STR(stdoutfd, STDOUT_FILENO);
     }
+}
+
+/* 
+ * is_valid_cmd: returns whether or not an occurence of a cmd string is valid in a given 
+ *  context string. An cmd is valid iff it occurs as a 'comd' in the grammar.
+ *
+ *  @param cmd: the command string to be checked
+ *  @param context: the context string where the command occurs
+ *  @param i: the index in the context string where the command occurs: context+i equals cmd
+ */
+bool is_valid_cmd(const char* cmd, const char* context, int i) {
+    #if ASSERT
+        assert(strncmp(context+i, cmd, strlen(cmd)) == 0);
+    #endif
+    
+    // check the context following the cmd occurence
+    const char *after = context + i + strlen(cmd);
+    bool after_ok = (*after == ' ' || *after == '\0' || *after == '|' || *after == ';' || *after == ')' ||
+        (strncmp(after, "&&", 2) == 0) || (strncmp(after, "||", 2) == 0));
+    
+    if (!after_ok)
+        return false;
+    
+    // check the context preceding the alias occurence
+    const char *before = context + i;
+    int index_before = i;
+    while (index_before > 0 && (*(before-1) == ' ' || *(before-1) == '(')) {
+        before--;
+        index_before--;
+    }
+    
+    bool before_ok = ( index_before == 0 || (*(before-1) == '|' || *(before-1) == ';') || 
+        (index_before >= 2 && (strncmp(before-2, "&&", 2) == 0 || strncmp(before-2, "||", 2) == 0))
+        || (index_before >= 4 && strncmp(before-4, "sudo", 4) == 0));
+    
+    return before_ok;
 }

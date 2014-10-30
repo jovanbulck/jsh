@@ -28,6 +28,5 @@ int unalias(char* key);
 int printaliases();
 char *resolvealiases(char*);
 bool alias_exists(char*);
-bool is_valid_cmd(const char*, const char*, int);
-char **get_all_alias_keys(int*);
+char **get_all_alias_keys(unsigned int*, bool);
 #endif //ALIAS_H_INCLUDED

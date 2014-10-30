@@ -36,6 +36,8 @@ struct alias *tail = NULL;
 int total_alias_val_length = 0;
 int nb_aliases = 0;
 
+bool alias_key_changed = false;
+
 /*
  * alias: create a mapping between a key and value pair that can be resolved with resolvealiases().
  *  returns EXIT_SUCCESS or EXIT_FAILURE if something went wrong (e.g. malloc)
@@ -72,6 +74,7 @@ int alias(char *k, char *v) {
 	    tail = new;
 	}
 	nb_aliases++;
+	alias_key_changed = true;
     return EXIT_SUCCESS;
 }
 
@@ -95,6 +98,7 @@ int unalias(char *key) {
             total_alias_val_length -= strnlen(cur->value, MAX_ALIAS_VAL_LENGTH);
             free(cur);
             nb_aliases--;
+            alias_key_changed = true;
             return EXIT_SUCCESS;;
         }
         prev = cur;
@@ -117,17 +121,33 @@ int printaliases() {
     return EXIT_SUCCESS;
 }
 
-char **get_all_alias_keys(int *nb_keys) {
+/*
+ * get_all_alias_keys: returns a newly malloced array of pointers to newly malloced strings
+ *  containing a copy of the alias keys.
+ * @param nb_keys           : if non-NULL; will contain the length of the result array;
+ *  nb_keys will be untouched if NULL is returned
+ * @param only_on_change    : if true, the result will only be non-NULL if one of the alias
+ *  keys changed since the last time this method was called.
+ * @return: an array with all alias key strings, or NULL iff @param(only_on_change) and
+ *  there have been no alias key changes since the last time this method was called.
+ * @note: the caller is responisble for freeing the array as well as the array elements
+ */
+char **get_all_alias_keys(unsigned int *nb_keys, bool only_on_change) {
+    if (only_on_change && !alias_key_changed) {
+        return NULL;
+    }
+    
     char **ret = malloc(sizeof(char*) * nb_aliases);
 
     int i = 0;
     struct alias *cur = head;
     while(cur != NULL) {
-        ret[i] = cur->key;  //todo strclone and double free or so?
+        ret[i] = strclone(cur->key);  //todo strclone and double free or so?
         cur = cur->next;
         i++;
     }
     if (nb_keys) *nb_keys = nb_aliases;
+    alias_key_changed = false;
     return ret;
 }
 
@@ -172,45 +192,7 @@ char *resolvealiases(char *s) {
     return ret;
 }
 
-
-/* TODO no code duplication...
- *
- * is_valid_cmd: returns whether or not an occurence of a cmd string is valid in a given 
- *  context string. An cmd is valid iff it occurs as a comd in the grammar.
- *
- *  @param cmd: the command string to be checked
- *  @param context: the context string where the command occurs
- *  @param i: the index in the context string where the command occurs: context+i equals cmd
- */
-bool is_valid_cmd(const char* cmd, const char* context, int i) {
-    #if ASSERT
-        assert(strncmp(context+i, cmd, strlen(cmd)) == 0);
-    #endif
-    
-    // check the context following the cmd occurence
-    const char *after = context + i + strlen(cmd);
-    bool after_ok = (*after == ' ' || *after == '\0' || *after == '|' || *after == ';' || *after == ')' ||
-        (strncmp(after, "&&", 2) == 0) || (strncmp(after, "||", 2) == 0));
-    
-    if (!after_ok)
-        return false;
-    
-    // check the context preceding the alias occurence
-    const char *before = context + i;
-    int index_before = i;
-    while (index_before > 0 && (*(before-1) == ' ' || *(before-1) == '(')) {
-        before--;
-        index_before--;
-    }
-    
-    bool before_ok = ( index_before == 0 || (*(before-1) == '|' || *(before-1) == ';') || 
-        (index_before >= 2 && (strncmp(before-2, "&&", 2) == 0 || strncmp(before-2, "||", 2) == 0))
-        || (index_before >= 4 && strncmp(before-4, "sudo", 4) == 0));
-    
-    return before_ok;
-}
-
-/*
+/* TODO TODO merge with is_valid_cmd
  * is_valid_alias: returns whether or not an occurence of an alias key is valid (i.e. must be 
  *  replaced by its value) in a given context string. An alias match is valid iff it occurs 
  *  as a comd in the grammar and it's not '\' escaped.

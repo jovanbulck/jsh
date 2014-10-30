@@ -19,7 +19,8 @@
 
 #include "jsh-common.h"
 #include "alias.h"
-#include "jsh-parse.c"
+#include "jsh-parse.h"
+#include "jsh-completion.h"
 #include <signal.h>
 #include <setjmp.h>
 #include <readline/readline.h>      // GNU readline: http://cnswww.cns.cwru.edu/php/chet/readline/rltop.html
@@ -29,8 +30,8 @@
 #ifndef VERSION
     #define VERSION             "jsh: unknown built" // makefile normally fills in the version info
 #endif
-#define HISTFILE                ".jsh_history"
 #define RCFILE                  ".jshrc"
+#define HISTFILE                ".jsh_history"
 #define LOGIN_FILE              ".jsh_login"
 #define DEFAULT_PROMPT          "%u@%h[%s]:%d$ "    // default init prompt string: "user@host[status]:pwd$ "
 #define MAX_PROMPT_LENGTH       100                 // maximum length of the displayed prompt string
@@ -45,22 +46,12 @@ int is_built_in(comd*);
 int parse_built_in(comd*, int);
 void sig_int_handler(int);
 void touch_config_files(void);
-char** jsh_completion(const char*, int, int);
-char *jsh_built_in_generator(const char*, int);
-char *my_generator(const char*, int);
-char *jsh_alias_generator(const char*, int);
-char *jsh_options_generator(const char*, int);
-char *jsh_widely_used_cmds_generator(const char*, int);
-char *git_completion_generator(const char*, int);
-char *debug_completion_generator(const char*, int);
-char *git_branch_completion_generator(const char*, int);
-char *apt_compl_generator(const char*, int);
 
 // ########## global variables ##########
 #ifdef NODEBUG
-bool DEBUG = false;
+    bool DEBUG = false;
 #else
-bool DEBUG = true;
+    bool DEBUG = true;
 #endif
 bool COLOR = true;
 bool LOAD_RC = true;
@@ -78,16 +69,9 @@ int MAX_DIR_LENGTH = 25;        // the maximum length of an expanded pwd substri
  */
 const char *built_ins[] = {"", "F", "T", "alias", "cd", "color", "debug",\
 "exit", "history", "prompt", "shcat", "source", "unalias"};
-#define nb_built_ins (sizeof(built_ins)/sizeof(built_ins[0]))
+const size_t nb_built_ins = sizeof(built_ins)/sizeof(built_ins[0]);
 enum built_in {EMPTY, F, T, ALIAS, CD, CLR, DBG, EXIT, HIST, PROMPT, SHCAT, SRC, UNALIAS};
 typedef enum built_in built_in;
-
-// hackhackhack
-const char *widely_used_cmds[] = {"git", "cat", "grep", "ls", "exit", "sudo", "kill", \
-"killall", "links", "find", "clear", "chmod", "echo", "make", "poweroff", "reboot", \
-"pacman", "aptitude", "apt-cache", "apt-get", "man", "nano", "vi", "gcc", "jsh", "zsh", \
-"bash"};
-#define nb_widely_used_cmds (sizeof(widely_used_cmds)/sizeof(widely_used_cmds[0]))
 
 /*
  *
@@ -248,7 +232,7 @@ void things_todo_at_start(void) {
     atexit(things_todo_at_exit);
     
     // enable custom rl_autocompletion
-    rl_attempted_completion_function = jsh_completion;
+    rl_attempted_completion_function = jsh_command_completion;
     
     // built-in aliases
     alias("~", gethome());
@@ -271,259 +255,6 @@ void things_todo_at_start(void) {
         printdebug("debugging is on. Turn it off with 'debug off'.");
     }
 }
-
-/*
- * TODO all completion stuff in separate file jsh-autocomplete.c or so
- *
- * jsh_completion: a custom GNU readline completion function for jsh built_in shell commands.
- *  This function is called by readline; if the result is non-NULL, readline wont perform 
- *  the default file completion.
- * @arg: from the readline manual: "start and end are indices in rl_line_buffer defining 
- *  the boundaries of text, which is a character string."
- * @return: an array of strings with the possible completions or NULL of no completions.
- */
-char** jsh_completion(const char *text, int start, int end) {
-    char **matches = NULL;
-    
-    // true iff user entered 'cmd text<TAB>'
-    #define USR_ENTERED(cmd) \
-        (start >= strlen(cmd)+1 && (strncmp(rl_line_buffer + start - strlen(cmd) - 1, \
-        cmd, strlen(cmd)) == 0)) // +1 for space
-     
-    if (is_valid_cmd(text, rl_line_buffer, start)) {
-        // try custom autocompletion iff this is a valid comd context
-        /*if (!(matches = rl_completion_matches(text, &jsh_built_in_generator)))
-            if (!(matches = rl_completion_matches(text, &jsh_alias_generator)))*/
-                matches = rl_completion_matches(text, &my_generator);
-        //TODO maybe a single generator instead of 3 separate onew
-    }
-    else {
-        // else try custom autocompletion for specific commands
-        if (USR_ENTERED("git")) {
-            matches = rl_completion_matches(text, &git_completion_generator);
-        }
-        else if (USR_ENTERED("git checkout") || USR_ENTERED("git branch") || 
-         USR_ENTERED("git merge")) {
-            char *pwd_is_git = strclone("git rev-parse --git-dir > /dev/null 2> /dev/null");
-            if (parseexpr(pwd_is_git) == EXIT_SUCCESS)
-                matches = rl_completion_matches(text, &git_branch_completion_generator);
-            free(pwd_is_git);
-        }
-        else if (USR_ENTERED("jsh")) {
-            matches = rl_completion_matches(text, &jsh_options_generator);
-        }
-        else if (USR_ENTERED("debug")) {
-            matches = rl_completion_matches(text, &debug_completion_generator);
-        }
-        else if (USR_ENTERED("apt")) {
-            matches = rl_completion_matches(text, &apt_compl_generator);
-        }
-    }
-        
-    return matches;
-}
-
-/*
- * A sketleton to facilitate the implementation of the custom completion generators.
- */
-#define COMPLETION_SKELETON(array, nb_elements) \
-    do { \
-        static int len; \
-        static int index; \
-        \
-        if (!state) { \
-            index = 0; \
-            len = strlen(text); \
-        } \
-        \
-        while (index < nb_elements) \
-            if (strncmp(array[index], text, len) == 0) \
-                return strclone(array[index++]); \
-            else \
-                index++; \
-        \
-        return NULL; \
-        } \
-    while (0)
-
-/*
- * From the readline doc: "text is the partial word to be completed. state is zero the 
- * first time the function is called. The generator function returns (char *) NULL to 
- * inform rl_completion_matches() that there are no more possibilities left. Usually the 
- * generator function computes the list of possible completions when state is zero, and 
- * returns them one at a time on subsequent calls.
- * Each string the generator function returns as a match must be allocated with malloc(); 
- * Readline frees the strings when it has finished with them."
- */
-char *jsh_built_in_generator(const char *text, int state) {
-    COMPLETION_SKELETON(built_ins, nb_built_ins);
-}
-
-char *my_generator(const char *text, int state) {
-    // a separate state for each helper generator, so that it starts from zero
-    static int alias_state = 0;
-    static int built_in_state = 0;
-    static int unix_state = 0;
-    
-    if (!state) {
-        alias_state = 0;
-        built_in_state = 0;
-        unix_state = 0;
-    }
-    
-    char *rv;    
-    if (!(rv = jsh_alias_generator(text, alias_state++)))
-        if (!(rv = jsh_built_in_generator(text, built_in_state++)))
-            rv = jsh_widely_used_cmds_generator(text, unix_state++);
-    return rv;
-}
-
-char *jsh_alias_generator(const char *text, int state) {
-    static char **alias_keys = NULL;
-    static int nb_alias_keys;
-    if (!state) {
-        if (alias_keys)
-            free(alias_keys);
-        alias_keys = get_all_alias_keys(&nb_alias_keys);
-    }
-    COMPLETION_SKELETON(alias_keys, nb_alias_keys); 
-}
-
-char *jsh_widely_used_cmds_generator(const char *text, int state) {
-    COMPLETION_SKELETON(widely_used_cmds, nb_widely_used_cmds);
-}
-
-char *git_completion_generator(const char *text, int state) {
-    static const char *git_cmds[] = {"add", "bisect", "branch", "checkout", "clone", \
-    "commit", "diff", "fetch", "grep", "init", "log", "merge", "mv", "pull", "push", \
-    "rebase", "reset", "rm", "show", "status", "tag"};
-    static const int nb_elements = (sizeof(git_cmds)/sizeof(git_cmds[0]));
-      
-    COMPLETION_SKELETON(git_cmds, nb_elements);
-}
-
-char *debug_completion_generator(const char *text, int state) {
-    static const char *options[] = {"on", "off"};
-    static const int nb_options = (sizeof(options)/sizeof(options[0]));
-    
-    COMPLETION_SKELETON(options, nb_options);
-}
-
-char *jsh_options_generator(const char *text, int state) {
-    static const char *options[] = {"--nodebug", "--debug", "--color", "--nocolor", \
-    "--norc", "--license", "--version", "--help"}; //TODO dont hardcode here?
-    static const int nb_options = (sizeof(options)/sizeof(options[0]));
-    
-    COMPLETION_SKELETON(options, nb_options);
-}
-
-char *apt_compl_generator(const char *text, int state) {
-    static const char *options[] = { "list", "search", "show", "install", "remove", \
-    "edit-sources", "update", "upgrade", "full-upgrade"};
-    static const int nb_elements = (sizeof(options)/sizeof(options[0]));
-    
-    COMPLETION_SKELETON(options, nb_elements);
-}
-
-char *git_branch_completion_generator(const char *text, int state) {
-    #define MAX_NB_BRANCHES 100     // hackhackhack
-    #define MAX_BRANCH_NAME_LEN 100
-    static char **branches = NULL;
-    static int nb_elements = 0;
-    
-    if (!state) {
-        if (branches) {
-            int i;
-            for (i = 0; i < MAX_NB_BRANCHES && branches[i]; i++)
-                free(branches[i]);
-            free(branches);
-        }
-        branches =  malloc((sizeof(char*) * MAX_NB_BRANCHES));
-        FILE *fp = popen("git branch --no-color", "r");
-        
-        nb_elements = 0;
-        int i;
-        bool done = false;
-        for (i= 0; i < MAX_NB_BRANCHES && !done; i++) {
-            branches[i] =  malloc(MAX_BRANCH_NAME_LEN * sizeof(char));
-            //if (!fgets(branches[i], MAX_BRANCH_NAME_LEN, fp)) break;
-            char *cur = branches[i];
-            int j = 0;
-            int c;
-            while (true) {
-                int c = getc(fp);
-                if (c == EOF) {
-                    done = true;
-                    cur[j] = '\0';
-                    break;
-                }
-                if (c == '\n') {
-                    cur[j] = '\0';
-                    break;
-                }
-                else if (c != ' ' && c != '*') {
-                    cur[j++] = c;
-                }
-            }
-            
-            nb_elements++;
-        }
-        
-        pclose(fp);
-    }
-    
-    COMPLETION_SKELETON(branches, nb_elements);
-    
-    /*static int len;
-    static int index;
-    static int nb;
-    
-    if (!state) {
-        // get all the branches in the cwd
-        len = strlen(text);
-        index = 0;
-        nb = 0;
-        if (parseexpr(strclone("git branch --no-color > my_help_file 2> /dev/null")) != EXIT_SUCCESS)
-            return NULL;
-        /*parsefile("my_help_file", (void (*)(char*)) printf, false);
-        printdebug("now opening");
-        FILE *file = fopen("my_help_file", "r");
-        if (!file) {
-            printdebug("oooh");
-            return NULL;
-        }
-        printdebug("open");
-        int c, i = 0;
-        char *line;
-        c = fgetc(file);
-        while (c != EOF) {
-        printdebug("in while with '%c' ", c);
-            if (c == '\n') {
-                printdebug("%dth new line", nb);
-                line[i] = '\0';
-                branches[nb++] = strclone(line);
-                i = 0;
-            }
-            else {
-                line[i++] = c;
-            }
-            c = fgetc(file);
-        }
-        
-        fclose(file);
-        printdebug("closed");*/
-    //}
-    
-    /*while (index < nb)
-            if (strncmp(branches[index], text, len) == 0)
-                return strclone(branches[index++]);
-            else 
-                index++; 
-         
-        return NULL;*/
-    
-}
-
 
 /*
  * create_config_files: looks for the jsh config files;

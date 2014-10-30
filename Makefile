@@ -37,7 +37,7 @@ CFLAGS                  = -g -DVERSION='$(VERSION_STR)' $(EXTRA_CFLAGS)
 # EXTRA_CFLAGS is empty on default; 'make install' will add the INSTALL_CFLAGS
 INSTALL_CFLAGS          = -DNODEBUG
 LIBS                    = -lreadline
-LN                      = $(CC) $(CFLAGS) jsh-common.o jsh.o alias.o -o jsh $(LIBS)
+LN                      = $(CC) $(CFLAGS) jsh-common.o jsh.o alias.o jsh-parse.o jsh-completion.o -o jsh $(LIBS)
 
 ECHO_LIBS               = echo "Linking jsh with the following libraries: $(LIBS) "
 
@@ -57,9 +57,13 @@ jsh-common: jsh-common.c jsh-common.h
 	$(CC) $(CFLAGS) -c jsh-common.c -o jsh-common.o
 alias: alias.c alias.h jsh-common.h
 	$(CC) $(CFLAGS) -c alias.c -o alias.o
-jsh: jsh-parse.c jsh.c alias.c jsh-common.h
+parse: jsh-parse.c jsh-parse.h jsh-common.h
+	$(CC) $(CFLAGS) -c jsh-parse.c -o jsh-parse.o
+completion: jsh-completion.h jsh-completion.c jsh-common.h
+	$(CC) $(CFLAGS) -c jsh-completion.c -o jsh-completion.o
+jsh: jsh.c jsh-common.h
 	$(CC) $(CFLAGS) -c jsh.c -o jsh.o
-link: jsh-common.o jsh.o alias.o
+link: jsh-common.o jsh.o alias.o jsh-parse.o jsh-completion.o
 	$(LINK)
 
 .PHONY: print_start_info
