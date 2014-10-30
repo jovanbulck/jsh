@@ -25,7 +25,6 @@ char *jsh_built_in_generator(const char*, int);
 char *jsh_alias_generator(const char*, int);
 char *jsh_external_cmd_generator(const char*, int);
 char *git_completion_generator(const char*, int);
-char *git_branch_completion_generator(const char*, int);
 char *apt_compl_generator(const char*, int);
 char *jsh_options_generator(const char*, int);
 char *debug_completion_generator(const char*, int);
@@ -53,14 +52,6 @@ char** jsh_command_completion(const char *text, int start, int end) {
         if (USR_ENTERED("git")) {
             matches = rl_completion_matches(text, &git_completion_generator);
         }
-        /* TODO branching; not yet stable
-        else if (USR_ENTERED("git checkout") || USR_ENTERED("git branch") || 
-         USR_ENTERED("git merge")) {
-            char *pwd_is_git = strclone("git rev-parse --git-dir > /dev/null 2> /dev/null");
-            if (parseexpr(pwd_is_git) == EXIT_SUCCESS)
-                matches = rl_completion_matches(text, &git_branch_completion_generator);
-            free(pwd_is_git);
-        }*/
         else if (USR_ENTERED("jsh")) {
             matches = rl_completion_matches(text, &jsh_options_generator);
         }
@@ -250,108 +241,3 @@ char *apt_compl_generator(const char *text, int state) {
     
     COMPLETION_SKELETON(options, nb_elements);
 }
-
-/*
- * git_branch_completion_generator : a readline completion generator for git branch names
- * TODO this is not yet stable
- */
-char *git_branch_completion_generator(const char *text, int state) {
-    #define MAX_NB_BRANCHES 100     // hackhackhack
-    #define MAX_BRANCH_NAME_LEN 100
-    static char **branches = NULL;
-    static int nb_elements = 0;
-    
-    if (!state) {
-        if (branches) {
-            int i;
-            for (i = 0; i < MAX_NB_BRANCHES && branches[i]; i++)
-                free(branches[i]);
-            free(branches); //FREE???
-        }
-        branches =  malloc((sizeof(char*) * MAX_NB_BRANCHES));
-        FILE *fp = popen("git branch --no-color", "r");
-        
-        nb_elements = 0;
-        int i;
-        bool done = false;
-        for (i= 0; i < MAX_NB_BRANCHES && !done; i++) {
-            branches[i] =  malloc(MAX_BRANCH_NAME_LEN * sizeof(char));
-            //if (!fgets(branches[i], MAX_BRANCH_NAME_LEN, fp)) break;
-            char *cur = branches[i];
-            int j = 0;
-            int c;
-            while (true) {
-                int c = getc(fp);
-                if (c == EOF) {
-                    done = true;
-                    cur[j] = '\0';
-                    break;
-                }
-                if (c == '\n') {
-                    cur[j] = '\0';
-                    break;
-                }
-                else if (c != ' ' && c != '*') {
-                    cur[j++] = c;
-                }
-            }
-            
-            nb_elements++;
-        }
-        
-        pclose(fp);
-    }
-    
-    COMPLETION_SKELETON(branches, nb_elements);
-    
-    /*static int len;
-    static int index;
-    static int nb;
-    
-    if (!state) {
-        // get all the branches in the cwd
-        len = strlen(text);
-        index = 0;
-        nb = 0;
-        if (parseexpr(strclone("git branch --no-color > my_help_file 2> /dev/null")) != EXIT_SUCCESS)
-            return NULL;
-        /*parsefile("my_help_file", (void (*)(char*)) printf, false);
-        printdebug("now opening");
-        FILE *file = fopen("my_help_file", "r");
-        if (!file) {
-            printdebug("oooh");
-            return NULL;
-        }
-        printdebug("open");
-        int c, i = 0;
-        char *line;
-        c = fgetc(file);
-        while (c != EOF) {
-        printdebug("in while with '%c' ", c);
-            if (c == '\n') {
-                printdebug("%dth new line", nb);
-                line[i] = '\0';
-                branches[nb++] = strclone(line);
-                i = 0;
-            }
-            else {
-                line[i++] = c;
-            }
-            c = fgetc(file);
-        }
-        
-        fclose(file);
-        printdebug("closed");*/
-    //}
-    
-    /*while (index < nb)
-            if (strncmp(branches[index], text, len) == 0)
-                return strclone(branches[index++]);
-            else 
-                index++; 
-         
-        return NULL;*/
-    
-}
-
-
