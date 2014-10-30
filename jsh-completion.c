@@ -53,14 +53,13 @@ char** jsh_command_completion(const char *text, int start, int end) {
         if (USR_ENTERED("git")) {
             matches = rl_completion_matches(text, &git_completion_generator);
         }
-        /* TODO branching; not yet stable
         else if (USR_ENTERED("git checkout") || USR_ENTERED("git branch") || 
          USR_ENTERED("git merge")) {
             char *pwd_is_git = strclone("git rev-parse --git-dir > /dev/null 2> /dev/null");
             if (parseexpr(pwd_is_git) == EXIT_SUCCESS)
                 matches = rl_completion_matches(text, &git_branch_completion_generator);
             free(pwd_is_git);
-        }*/
+        }
         else if (USR_ENTERED("jsh")) {
             matches = rl_completion_matches(text, &jsh_options_generator);
         }
@@ -264,9 +263,9 @@ char *git_branch_completion_generator(const char *text, int state) {
     if (!state) {
         if (branches) {
             int i;
-            for (i = 0; i < MAX_NB_BRANCHES && branches[i]; i++)
+            for (i = 0; i < nb_elements; i++)
                 free(branches[i]);
-            free(branches); //FREE???
+            free(branches);
         }
         branches =  malloc((sizeof(char*) * MAX_NB_BRANCHES));
         FILE *fp = popen("git branch --no-color", "r");
@@ -303,55 +302,6 @@ char *git_branch_completion_generator(const char *text, int state) {
     }
     
     COMPLETION_SKELETON(branches, nb_elements);
-    
-    /*static int len;
-    static int index;
-    static int nb;
-    
-    if (!state) {
-        // get all the branches in the cwd
-        len = strlen(text);
-        index = 0;
-        nb = 0;
-        if (parseexpr(strclone("git branch --no-color > my_help_file 2> /dev/null")) != EXIT_SUCCESS)
-            return NULL;
-        /*parsefile("my_help_file", (void (*)(char*)) printf, false);
-        printdebug("now opening");
-        FILE *file = fopen("my_help_file", "r");
-        if (!file) {
-            printdebug("oooh");
-            return NULL;
-        }
-        printdebug("open");
-        int c, i = 0;
-        char *line;
-        c = fgetc(file);
-        while (c != EOF) {
-        printdebug("in while with '%c' ", c);
-            if (c == '\n') {
-                printdebug("%dth new line", nb);
-                line[i] = '\0';
-                branches[nb++] = strclone(line);
-                i = 0;
-            }
-            else {
-                line[i++] = c;
-            }
-            c = fgetc(file);
-        }
-        
-        fclose(file);
-        printdebug("closed");*/
-    //}
-    
-    /*while (index < nb)
-            if (strncmp(branches[index], text, len) == 0)
-                return strclone(branches[index++]);
-            else 
-                index++; 
-         
-        return NULL;*/
-    
 }
 
 
