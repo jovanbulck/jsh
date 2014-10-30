@@ -22,10 +22,12 @@
 /* ^^ these are the include guards */
 
 #include "jsh-common.h"
+#include "jsh-parse.h"
 
 int alias(char*, char*);
 int unalias(char* key);
 int printaliases();
 char *resolvealiases(char*);
 bool alias_exists(char*);
+char **get_all_alias_keys(unsigned int*, bool);
 #endif //ALIAS_H_INCLUDED

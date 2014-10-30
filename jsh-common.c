@@ -159,6 +159,14 @@ bool is_sorted(void *a, size_t n, size_t el_size, int (*compar)(const void *, co
     return true;
 }
 
+/*
+ * strclone: returns a pointer to a malloc block with a copy of the provided string.
+ */
+char *strclone(const char* str) {
+    char *ret = malloc(strlen(str)+1);
+    strcpy(ret, str);
+    return ret;
+}
 
 /*
  * concat: concatenates count nb of strings and returns a pointer to the malloc()ed result.

@@ -19,16 +19,19 @@
 
 #include "jsh-common.h"
 #include "alias.h"
-#include "jsh-parse.c"
+#include "jsh-parse.h"
+#include "jsh-completion.h"
 #include <signal.h>
 #include <setjmp.h>
 #include <readline/readline.h>      // GNU readline: http://cnswww.cns.cwru.edu/php/chet/readline/rltop.html
 #include <readline/history.h>
 
 // ########## macro definitions ##########
-#define VERSION                 "jsh 1.1.0"
-#define HISTFILE                ".jsh_history"
+#ifndef VERSION
+    #define VERSION             "jsh: unknown built" // makefile normally fills in the version info
+#endif
 #define RCFILE                  ".jshrc"
+#define HISTFILE                ".jsh_history"
 #define LOGIN_FILE              ".jsh_login"
 #define DEFAULT_PROMPT          "%u@%h[%s]:%d$ "    // default init prompt string: "user@host[status]:pwd$ "
 #define MAX_PROMPT_LENGTH       100                 // maximum length of the displayed prompt string
@@ -41,14 +44,14 @@ char *getprompt(int);
 char *readcmd(int status);
 int is_built_in(comd*);
 int parse_built_in(comd*, int);
-void sig_int_handler(int sig);
+void sig_int_handler(int);
 void touch_config_files(void);
 
 // ########## global variables ##########
 #ifdef NODEBUG
-bool DEBUG = false;
+    bool DEBUG = false;
 #else
-bool DEBUG = true;
+    bool DEBUG = true;
 #endif
 bool COLOR = true;
 bool LOAD_RC = true;
@@ -66,7 +69,7 @@ int MAX_DIR_LENGTH = 25;        // the maximum length of an expanded pwd substri
  */
 const char *built_ins[] = {"", "F", "T", "alias", "cd", "color", "debug",\
 "exit", "history", "prompt", "shcat", "source", "unalias"};
-#define nb_built_ins (sizeof(built_ins)/sizeof(built_ins[0]))
+const size_t nb_built_ins = sizeof(built_ins)/sizeof(built_ins[0]);
 enum built_in {EMPTY, F, T, ALIAS, CD, CLR, DBG, EXIT, HIST, PROMPT, SHCAT, SRC, UNALIAS};
 typedef enum built_in built_in;
 
@@ -227,6 +230,9 @@ void things_todo_at_start(void) {
     
     // register the things_todo_at_exit function atexit
     atexit(things_todo_at_exit);
+    
+    // enable custom rl_autocompletion
+    rl_attempted_completion_function = jsh_command_completion;
     
     // built-in aliases
     alias("~", gethome());

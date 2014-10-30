@@ -34,6 +34,9 @@ struct alias *head = NULL;
 struct alias *tail = NULL;
 
 int total_alias_val_length = 0;
+int nb_aliases = 0;
+
+bool alias_key_changed = false;
 
 /*
  * alias: create a mapping between a key and value pair that can be resolved with resolvealiases().
@@ -70,6 +73,8 @@ int alias(char *k, char *v) {
 	    tail->next = new;
 	    tail = new;
 	}
+	nb_aliases++;
+	alias_key_changed = true;
     return EXIT_SUCCESS;
 }
 
@@ -92,6 +97,8 @@ int unalias(char *key) {
             // free the unalised alias and return
             total_alias_val_length -= strnlen(cur->value, MAX_ALIAS_VAL_LENGTH);
             free(cur);
+            nb_aliases--;
+            alias_key_changed = true;
             return EXIT_SUCCESS;;
         }
         prev = cur;
@@ -114,6 +121,36 @@ int printaliases() {
     return EXIT_SUCCESS;
 }
 
+/*
+ * get_all_alias_keys: returns a newly malloced array of pointers to newly malloced strings
+ *  containing a copy of the alias keys.
+ * @param nb_keys           : if non-NULL; will contain the length of the result array;
+ *  nb_keys will be untouched if NULL is returned
+ * @param only_on_change    : if true, the result will only be non-NULL if one of the alias
+ *  keys changed since the last time this method was called.
+ * @return: an array with all alias key strings, or NULL iff @param(only_on_change) and
+ *  there have been no alias key changes since the last time this method was called.
+ * @note: the caller is responisble for freeing the array as well as the array elements
+ */
+char **get_all_alias_keys(unsigned int *nb_keys, bool only_on_change) {
+    if (only_on_change && !alias_key_changed) {
+        return NULL;
+    }
+    
+    char **ret = malloc(sizeof(char*) * nb_aliases);
+
+    int i = 0;
+    struct alias *cur = head;
+    while(cur != NULL) {
+        ret[i] = strclone(cur->key);
+        cur = cur->next;
+        i++;
+    }
+    if (nb_keys) *nb_keys = nb_aliases;
+    alias_key_changed = false;
+    return ret;
+}
+
 
 /*
  * resolvealiases: substitutes all known aliases in the inputstring. Returns a pointer to the alias-expanded string.
@@ -125,7 +162,7 @@ int printaliases() {
  *                                                                                    alt syntax: alias ls "ls --color=auto"
  */
 char *resolvealiases(char *s) {
-    bool is_valid_alias(struct alias*, char*, int); // helper function def
+    bool is_valid_alias(char*, char*, int); // helper function def
 
     // alloc enough space for the return value
     int maxsize = strlen(s) + total_alias_val_length; 
@@ -137,7 +174,7 @@ char *resolvealiases(char *s) {
     char *p, *str; // p is pointer to matched substring; str is pointer to not-yet-checked string
     for (cur = head; cur != NULL; cur = cur->next)
         for (str = ret; (p = strstr(str, cur->key)) != NULL;) {
-            if (is_valid_alias(cur, ret, p-ret)) {
+            if (is_valid_alias(cur->key, ret, p-ret)) {
                 printdebug("alias: '%s' VALID in context '%s'", cur->key, p);
                 
                 char *after = p + strlen(cur->key);
@@ -155,51 +192,28 @@ char *resolvealiases(char *s) {
     return ret;
 }
 
-/*
+/* 
  * is_valid_alias: returns whether or not an occurence of an alias key is valid (i.e. must be 
  *  replaced by its value) in a given context string. An alias match is valid iff it occurs 
  *  as a comd in the grammar and it's not '\' escaped.
  *
- *  @param alias: the alias struct corresponding to the alias that is matched
+ *  @param key: the alias key corresponding to the alias that is matched
  *  @param context: the context string where the alias is matched
  *  @param i: the index in the context string where the alias is matched: context+i equals alias->key
  */
-bool is_valid_alias(struct alias *alias, char *context, int i) {
-    #if ASSERT
-        assert(strncmp(context+i, alias->key, strlen(alias->key)) == 0);
-    #endif
-    
-    // allow escaping '\' of aliases
+bool is_valid_alias(char *key, char *context, int i) {
+    // allow escaping '\' of aliases TODO is this usefull? --> yes for the ~ alias hack
     if ( i > 0 && *(context+i-1) == '\\' ) {
-        printdebug("alias: escaping '%s'", alias->key);
-        memmove(context+i-1, context+i, strlen(context+i)+1);
+        printdebug("alias: escaping '%s'", key);
+        memmove(context+i-1, context+i, strlen(context+i)+1); //TODO this function shouldn't change the given context
         return false;
     }
     
-    // built_in aliases are valid in any context
-    if (*alias->key == '~')
+    // built_in aliases are valid in any context TODO unless escaped...
+    if (*key == '~')
         return true;
     
-    // check the context following the alias occurence
-    char *after = context + i + strlen(alias->key);
-    bool after_ok = (*after == ' ' || *after == '\0' || *after == '|' || *after == ';' || *after == ')' ||
-        (strncmp(after, "&&", 2) == 0) || (strncmp(after, "||", 2) == 0));
-    
-    if (!after_ok)
-        return false;
-    
-    // check the context preceding the alias occurence
-    char *before = context + i;
-    int nb_before = i;
-    while (nb_before > 0 && (*(before-1) == ' ' || *(before-1) == '(')) {
-        before--;
-        nb_before--;
-    }
-    
-    bool before_ok = ( nb_before == 0 || (*(before-1) == '|' || *(before-1) == ';') || 
-        (nb_before >= 2 && (strncmp(before-2, "&&", 2) == 0 || strncmp(before-2, "||", 2) == 0)));
-    
-    return before_ok;
+    return is_valid_cmd(key, context, i);
 }
 
 /*
