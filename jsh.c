@@ -1,6 +1,6 @@
 /* This file is part of jsh.
  * 
- * jsh (jo-shell): A basic shell implementation
+ * jsh (jo-shell): A basic UNIX shell implementation in C
  * Copyright (C) 2014 Jo Van Bulck <jo.vanbulck@student.kuleuven.be>
  *
  * jsh is free software: you can redistribute it and/or modify
@@ -512,7 +512,16 @@ int parse_built_in(comd *comd, int index) {
             exit(EXIT_SUCCESS);
             break;
         case HIST:
-            CHK_ARGC("history", 0);
+            // check for the optional argument
+            // nb-entries: print the number of hist entries in the current session
+            if (comd->length == 2 && strcmp(comd->cmd[1], "--nb-entries") == 0) {
+                printf("%d\n", nb_hist_entries);
+                return EXIT_SUCCESS;
+                break;
+            }
+            else
+                CHK_ARGC("history", 0);
+            
             HIST_ENTRY **hlist = history_list();
             int i;
             if (hlist)
