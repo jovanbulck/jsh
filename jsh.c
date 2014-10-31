@@ -417,7 +417,7 @@ char *readcmd(int status) {
         free(buf); // free unresolved version
         buf = ret; // point to resolved cmd
     }
-    else {
+    else if (!buf) {
         printf("\n");
         printdebug("You entered EOF");
     }
