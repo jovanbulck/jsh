@@ -252,10 +252,9 @@ char *apt_compl_generator(const char *text, int state) {
 
 /*
  * git_branch_completion_generator : a readline completion generator for git branch names
- * TODO this is not yet stable
  */
 char *git_branch_completion_generator(const char *text, int state) {
-    #define MAX_NB_BRANCHES 100     // hackhackhack
+    #define MAX_NB_BRANCHES 100     // hackhackhack TODO cleanup...
     #define MAX_BRANCH_NAME_LEN 100
     static char **branches = NULL;
     static int nb_elements = 0;
@@ -291,6 +290,37 @@ char *git_branch_completion_generator(const char *text, int state) {
                     break;
                 }
                 else if (c != ' ' && c != '*') {
+                    cur[j++] = c;
+                }
+            }
+            
+            nb_elements++;
+        }
+        
+        pclose(fp);
+        
+        // TODO cleanup ; no code duplication + git procelain syntax?? for parsing  now remote branches
+        fp = popen("git branch --no-color -r", "r");
+        
+        done = false;
+        for (; i < MAX_NB_BRANCHES && !done; i++) {
+            branches[i] =  malloc(MAX_BRANCH_NAME_LEN * sizeof(char));
+            //if (!fgets(branches[i], MAX_BRANCH_NAME_LEN, fp)) break;
+            char *cur = branches[i];
+            int j = 0;
+            int c;
+            while (true) {
+                int c = getc(fp);
+                if (c == EOF) {
+                    done = true;
+                    cur[j] = '\0';
+                    break;
+                }
+                if (c == '\n' || c == '>') {
+                    cur[j] = '\0';
+                    break;
+                }
+                else if (c != ' ' && c != '*' && c != '-') {
                     cur[j++] = c;
                 }
             }
