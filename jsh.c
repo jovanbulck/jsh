@@ -33,6 +33,7 @@
 #define RCFILE                  ".jshrc"
 #define HISTFILE                ".jsh_history"
 #define LOGIN_FILE              ".jsh_login"
+#define LOGOUT_FILE             ".jsh_logout"
 #define DEFAULT_PROMPT          "%u@%h[%s]:%d$ "    // default init prompt string: "user@host[status]:pwd$ "
 #define MAX_PROMPT_LENGTH       100                 // maximum length of the displayed prompt string
 #define MAX_STATUS_LENGTH       10                  // the max number of msd of a status integer in the prompt string
@@ -129,6 +130,7 @@ void option(char *str) {
     	        printf("\nConfiguration files:\n");
     	        printf("~/%s\tfile containing commands to be executed at login\n", RCFILE);
     	        printf("~/%s\tfile containing the welcome message auto printed at login of an interactive session\n", LOGIN_FILE);
+       	        printf("~/%s\tfile containing commands to be executed at logout of an interactive session\n", LOGOUT_FILE);
     	        printf("~/%s\tfile containing the command history auto loaded and saved at login/logout\n", HISTFILE);
     	        printf("\nReport bugs to: jo.vanbulck@student.kuleuven.be\n");
                 printf("jsh homepage: <https://github.com/jovanbulck/jo-shell>\n");
@@ -168,7 +170,7 @@ void option(char *str) {
                 printf("GNU General Public License for more details.\n");
                 
                 printf("\nYou should have received a copy of the GNU General Public License\n");
-                printf("along with this program.  If not, see <https://www.gnu.org/licenses/>.\n");
+                printf("along with this program. If not, see <https://www.gnu.org/licenses/>.\n");
                 exit(EXIT_SUCCESS);
 		        break;
 			default:
@@ -277,6 +279,7 @@ void touch_config_files(void) {
     CREATE_F(HISTFILE);
     CREATE_F(RCFILE);
     CREATE_F(LOGIN_FILE);
+    CREATE_F(LOGOUT_FILE);
 }
 
 /*
@@ -285,6 +288,18 @@ void touch_config_files(void) {
 void things_todo_at_exit(void) {
     if (I_AM_FORK)
         return; //ignore exiting of child processes (e.g. failed fork execv)
+    
+    // execute commands in logout file (silently)
+    if (IS_INTERACTIVE) {
+        printdebug("now executing '%s'", LOGOUT_FILE);
+        bool dbg = DEBUG;
+        DEBUG = false;
+        char *path = concat(3, gethome(), "/", LOGOUT_FILE);
+        parsefile(path, (void (*)(char*)) parseexpr, false);
+        free(path);
+        DEBUG = dbg;
+        printdebug("'%s' executed", LOGOUT_FILE);
+    }
     
     char * path = concat(3, gethome(), "/", HISTFILE);  //TODO check this uses malloc??? fail return status?
     if (append_history(nb_hist_entries, path) == 0)
@@ -378,11 +393,11 @@ char *readcmd(int status) {
         buf = NULL;
     }
     buf = readline(getprompt(status));  //TODO fall back to getline() when non-interactive...
-    printdebug("You entered: '%s'", buf);
-
+    
     // If the line has any text in it: expand history, save it to history and resolve aliases
     //  (readline returns NULL iff EOF on a blank line)
-    if (buf != NULL && *buf) {
+    if (buf && *buf) {
+        printdebug("You entered: '%s'", buf);
         // do history expansion
         char *expansion = '\0';
         int hist_rv;
@@ -401,6 +416,10 @@ char *readcmd(int status) {
         char *ret = resolvealiases(buf);
         free(buf); // free unresolved version
         buf = ret; // point to resolved cmd
+    }
+    else {
+        printf("\n");
+        printdebug("You entered EOF");
     }
     return buf;
 }
