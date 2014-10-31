@@ -25,6 +25,7 @@ char *jsh_built_in_generator(const char*, int);
 char *jsh_alias_generator(const char*, int);
 char *jsh_external_cmd_generator(const char*, int);
 char *git_completion_generator(const char*, int);
+char *git_branch_completion_generator(const char*, int);
 char *apt_compl_generator(const char*, int);
 char *jsh_options_generator(const char*, int);
 char *debug_completion_generator(const char*, int);
