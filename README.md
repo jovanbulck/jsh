@@ -8,12 +8,12 @@
                               a basic UNIX shell implementation in C
 ```
 ## Introducing `jsh`
-`jsh` (jo-shell): A basic UNIX shell implementation in C
 
 From the `man`page:
-> `jsh` is a UNIX command interpreter (shell) that executes commands read from the standard input or from a file. `jsh` implements a subset of the `sh` language grammar and is intended to be POSIX-conformant.
 
-> `jsh` is written 'just for fun' and is not intented to be a full competitor to advanced UNIX shells such as `bash` and `zsh`. `jsh` is free software and you are welcome to collaborate on the github page or to redistribute jsh under the conditions of the GNU General Public License.
+`jsh` is a UNIX command interpreter (shell) that executes commands read from the standard input or from a file. `jsh` implements a subset of the `sh` language grammar and is intended to be POSIX-conformant.
+
+`jsh` is written 'just for fun' and is not intented to be a full competitor to advanced UNIX shells such as `bash` and `zsh`. `jsh` is free software and you are welcome to collaborate on the github page or to redistribute jsh under the conditions of the GNU General Public License.
 
 ## Find out more
 | About | Installation guide | Configuration | Documentation | Contributing |
