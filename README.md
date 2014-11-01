@@ -22,14 +22,8 @@ From the `man`page:
 | [About `jsh`](About) | [Compiling and running `jsh`](Compiling-and-running) | [Customizing `jsh`](Sample-configuration-files) | [`jsh` man page](Manual) | [Coding guidelines](Coding-guidelines)|
 | Introducing the jo-shell | Step-by-step guide to compile `jsh`for your own system | Configuring the shell for your own use | Online text version of the latest `man jsh` | Info for developers |
 
-## Dependencies overview
-The following table lists the dependencies needed to compile `jsh`for your own system. See [the wiki page](https://github.com/jovanbulck/jo-shell/wiki/Compiling-and-running) for more info.
-
-| Dependency | Rationale | Where to get it|
-|------------|-----------|--------------|
-| [GNU Readline](http://cnswww.cns.cwru.edu/php/chet/readline/rltop.html) | `jsh` uses the `readline` library for user input line editing, autocompletion and command history. | The following section list platform specific info to resolve the `libreadline` dependency. |
-| [GNU Make](https://www.gnu.org/software/make/) | The `Makefile` uses some GNU Make specific features. | Most operating systems provide `make` in the standard package manager. Note BSD provides its own (incompatible) version of `make`. See below. |
-| basic UNIX utilities: `install`, `uname`, `date`, `sed` | Theses utilites are used by the `Makefile` during the build process | Getting these utilites should be no problem, as they are widely available and installed on any basic UNIX system. |
+## Get it!
+[This page](https://github.com/jovanbulck/jo-shell/releases/latest) provides pre-built binaries for all official `jsh` releases. You can also build `jsh` for your own system yourself using `make`. See [the wiki page](https://github.com/jovanbulck/jo-shell/wiki/Compiling-and-running) for more info.
 
 ## Supported shell grammar
 
