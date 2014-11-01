@@ -23,4 +23,4 @@ From the `man`page:
 | Introducing the jo-shell | Step-by-step guide to compile `jsh`for your own system | Configuring the shell for your own use | Online text version of the latest `man jsh` | Info for developers |
 
 ## Get it!
-[This page](https://github.com/jovanbulck/jo-shell/releases/latest) provides pre-built binaries for all official `jsh` releases. To build `jsh` yourself, clone this respository, `cd` into it and execute `make`. See [the wiki page](https://github.com/jovanbulck/jo-shell/wiki/Compiling-and-running) for more info.
+[This page](https://github.com/jovanbulck/jo-shell/releases/latest) provides pre-built binaries for all official `jsh` releases. To build `jsh` yourself, clone this respository, `cd` into it and execute `make`. See [the wiki page](https://github.com/jovanbulck/jo-shell/wiki/Compiling-and-running) for more info and dependencies overview.
