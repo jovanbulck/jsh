@@ -7,7 +7,7 @@
                 /___/
                               a basic UNIX shell implementation in C
 ```
-## Introducing `jsh`     [![star this repo](http://github-svg-buttons.herokuapp.com/star.svg?user=jovanbulck&repo=jo-shell)](http://github.com/ddavison/github-svg-buttons) [![fork this repo](http://github-svg-buttons.herokuapp.com/fork.svg?user=jovanbulck&repo=jo-shell)](http://github.com/ddavison/github-svg-buttons/fork)
+## Introducing `jsh`     [![star this repo](http://github-svg-buttons.herokuapp.com/star.svg?user=jovanbulck&repo=jo-shell)](http://github.com/jovanbulck/jo-shell/stargazers) [![fork this repo](http://github-svg-buttons.herokuapp.com/fork.svg?user=jovanbulck&repo=jo-shell)](http://github.com/jovanbulck/jo-shell/fork)
 
 From the `man`page:
 
