@@ -19,7 +19,7 @@ From the `man`page:
 | About | Installation guide | Configuration | Documentation | Contributing |
 |-------|-------------------|---------------|--------------|--------------|
 | ![about-icon](https://cloud.githubusercontent.com/assets/2464627/4871965/28777edc-61d1-11e4-876c-4f874b75e9ae.png) | ![installation-icon](https://cloud.githubusercontent.com/assets/2464627/4871947/8c2f52fc-61d0-11e4-9f31-5f44aaecfcce.png) | ![config-icon](https://cloud.githubusercontent.com/assets/2464627/4872003/81e09858-61d3-11e4-94e4-920777e271cf.png) | ![doc-icon](https://cloud.githubusercontent.com/assets/2464627/4871956/bb9b4e74-61d0-11e4-978b-9af28da67ad8.png) | ![community-icon](https://cloud.githubusercontent.com/assets/2464627/4871945/53747d02-61d0-11e4-8ae8-10e1bdf3b70b.png) |
-| [About `jsh`](About) | [Compiling and running `jsh`](Compiling-and-running) | [Customizing `jsh`](Sample-configuration-files) | [`jsh` man page](Manual) | [Coding guidelines](Coding-guidelines)|
+| [About `jsh`](https://github.com/jovanbulck/jo-shell/wiki/About) | [Compiling and running `jsh`](https://github.com/jovanbulck/jo-shell/wiki/Compiling-and-running) | [Customizing `jsh`](https://github.com/jovanbulck/jo-shell/wiki/Sample-configuration-files) | [`jsh` man page](https://github.com/jovanbulck/jo-shell/wiki/Manual) | [Coding guidelines](https://github.com/jovanbulck/jo-shell/wiki/Coding-guidelines)|
 | Introducing the jo-shell | Step-by-step guide to compile `jsh`for your own system | Configuring the shell for your own use | Online text version of the latest `man jsh` | Info for developers |
 
 ## Get it!
