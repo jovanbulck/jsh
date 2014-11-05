@@ -251,7 +251,7 @@ void things_todo_at_start(void) {
         bool temp = DEBUG;
         DEBUG = false;        
         char * path = concat(3, gethome(), "/", LOGIN_FILE);
-        parsefile(path, (void (*)(char*)) &printf, false);
+        parsefile(path, (void (*)(char*)) puts_verbatim, false);
         free(path);
         DEBUG = temp;
         printdebug("debugging is on. Turn it off with 'debug off'.");
@@ -551,7 +551,7 @@ int parse_built_in(comd *comd, int index) {
             break;
             }
         case SHCAT:
-            parsestream(stdin, "stdin", (void (*)(char*)) printf);  // built_in cat; mainly for testing purposes (redirecting stdin)
+            parsestream(stdin, "stdin", (void (*)(char*)) puts_verbatim);  // built_in cat; mainly for testing purposes (redirecting stdin)
             return EXIT_SUCCESS;
             break;
         case UNALIAS:

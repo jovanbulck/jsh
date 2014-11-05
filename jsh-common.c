@@ -89,10 +89,18 @@ char *gethome() {
     return (rv != NULL)? rv: curdir;
 }
 
+inline int puts_verbatim(const char *s) {
+    return fputs(s, stdout);
+}
+
 /*
  * parsefile: wrapper for parsestream(), opening and closing the file at the provided path.
- *  @arg errmsg: true  = print an error message if opening the file failed
+ * @arg errmsg: true  = print an error message if opening the file failed
  *               false = exit silently if opening the file failed
+ * @NOTE: if you pass a pointer to 'printf()' here, this may introduce format-string-
+ *  vulnerabilities as the lines are passed verbatim to the function. If you want to use
+ *  this function to print the content of a file line per line, pass a pointer to
+ *  'puts_verbatim()' (defined in jsh-common.h) instead.
  */
 void parsefile(char *path, void (*fct)(char*), bool errmsg) {
     FILE *file = fopen(path, "r");
@@ -106,7 +114,11 @@ void parsefile(char *path, void (*fct)(char*), bool errmsg) {
 
 /*
  * parsestream: reads the provided stream strm line per line, passing each line, 
- *  including '\n' to the provided function fct
+ *  including '\n' to the provided function fct.
+ * @NOTE: if you pass a pointer to 'printf()' here, this may introduce format-string-
+ *  vulnerabilities as the lines are passed verbatim to the function. If you want to use
+ *  this function to print the content of a file line per line, pass a pointer to
+ *  'puts_verbatim()' (defined in jsh-common.h) instead.
  */
 void parsestream(FILE *strm, char* name, void (*fct)(char*)) {
     printdebug("-------- now parsing stream '%s' --------", name);
