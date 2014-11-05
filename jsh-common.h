@@ -58,6 +58,12 @@
     else \
         fprintf(stream, "\n"); \
 
+/*
+ * A function that prints the provided '\0' terminated string verbatim on stdout, without
+ *  appending a newline '\n' character.
+ */
+inline int puts_verbatim(const char *s);
+
 // ######### linux tty color codes ########
 #define RESET		        0
 #define BRIGHT 		        1
