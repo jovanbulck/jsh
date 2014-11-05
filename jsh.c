@@ -1,6 +1,6 @@
 /* This file is part of jsh.
  * 
- * jsh (jo-shell): A basic shell implementation
+ * jsh (jo-shell): A basic UNIX shell implementation in C
  * Copyright (C) 2014 Jo Van Bulck <jo.vanbulck@student.kuleuven.be>
  *
  * jsh is free software: you can redistribute it and/or modify
@@ -251,7 +251,7 @@ void things_todo_at_start(void) {
         bool temp = DEBUG;
         DEBUG = false;        
         char * path = concat(3, gethome(), "/", LOGIN_FILE);
-        parsefile(path, (void (*)(char*)) &printf, false);
+        parsefile(path, (void (*)(char*)) puts_verbatim, false);
         free(path);
         DEBUG = temp;
         printdebug("debugging is on. Turn it off with 'debug off'.");
@@ -417,7 +417,7 @@ char *readcmd(int status) {
         free(buf); // free unresolved version
         buf = ret; // point to resolved cmd
     }
-    else {
+    else if (!buf) {
         printf("\n");
         printdebug("You entered EOF");
     }
@@ -512,7 +512,16 @@ int parse_built_in(comd *comd, int index) {
             exit(EXIT_SUCCESS);
             break;
         case HIST:
-            CHK_ARGC("history", 0);
+            // check for the optional argument
+            // nb-entries: print the number of hist entries in the current session
+            if (comd->length == 2 && strcmp(comd->cmd[1], "--nb-entries") == 0) {
+                printf("%d\n", nb_hist_entries);
+                return EXIT_SUCCESS;
+                break;
+            }
+            else
+                CHK_ARGC("history", 0);
+            
             HIST_ENTRY **hlist = history_list();
             int i;
             if (hlist)
@@ -542,7 +551,7 @@ int parse_built_in(comd *comd, int index) {
             break;
             }
         case SHCAT:
-            parsestream(stdin, "stdin", (void (*)(char*)) printf);  // built_in cat; mainly for testing purposes (redirecting stdin)
+            parsestream(stdin, "stdin", (void (*)(char*)) puts_verbatim);  // built_in cat; mainly for testing purposes (redirecting stdin)
             return EXIT_SUCCESS;
             break;
         case UNALIAS:
