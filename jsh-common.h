@@ -61,8 +61,12 @@
 /*
  * A function that prints the provided '\0' terminated string verbatim on stdout, without 
  *  appending a newline '\n' character.
+ * @note: inline function implementations should be in header
+ *  see (http://stackoverflow.com/questions/26503235/c-inline-funtion-and-gcc)
  */
-inline int puts_verbatim(const char *s);
+static inline int puts_verbatim(const char *s) {
+    return fputs(s, stdout);
+}
 
 // ######### linux tty color codes ########
 #define RESET		        0

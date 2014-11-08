@@ -89,9 +89,12 @@ char *gethome() {
     return (rv != NULL)? rv: curdir;
 }
 
-inline int puts_verbatim(const char *s) {
-    return fputs(s, stdout);
-}
+/* 
+ * @note: inline function implementation should be in header. Moreover one extern 
+ *  declaration should be used, to tell the compiler where to put the non-inlined function,
+ *  if needed. See (http://stackoverflow.com/questions/26503235/c-inline-funtion-and-gcc).
+ */
+extern inline int puts_verbatim(const char *s);
 
 /*
  * parsefile: wrapper for parsestream(), opening and closing the file at the provided path.
