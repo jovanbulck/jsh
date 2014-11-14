@@ -21,19 +21,22 @@
 
 ############################## COMMON THINGS #############################
 
-# common options for all dialogs
-DIALOG="dialog --stderr --clear"
-
+# default values, overridable by user via dialogs
 #USER=`whoami`
 INSTALL_PATH="/usr/local/bin"
 MAN_PATH="/usr/local/share/man/man1"
 
+MAKE_MAN=true
+COLOR_OUTPUT=true
+RC_FILE=true
+DEBUG=false
+
+# common options for all dialogs
+DIALOG="dialog --stderr --clear"
+
 # create a tempfile to hold dialogs responses
 tempfile=`tempfile 2>/dev/null` || tempfile=/tmp/jsh_installer$$
 another_temp_file=`tempfile 2>/dev/null` || tempfile=/tmp/jsh_installer_other$$
-
-# cleanup tempfile if any of the signals - SIGHUP SIGINT SIGTERM it received.
-trap "rm -f $tempfile; rm -f $another_temp_file; exit" SIGHUP SIGINT SIGTERM
 
 exit_installer()
 {
@@ -42,6 +45,18 @@ exit_installer()
     rm -f $tempfile
     rm -f $another_tempfile
     exit 1
+}
+
+# cleanup tempfile if any of the signals - SIGHUP SIGINT SIGTERM it received.
+trap exit_installer SIGHUP SIGINT SIGTERM
+
+exit_installer_success()
+{
+    clear
+    echo "jsh installer exited successfully"
+    rm -f $tempfile
+    rm -f $another_tempfile
+    exit 0
 }
 
 display_info()
@@ -59,35 +74,70 @@ display_info()
 # the following sections define some dialog fucntions in order to move forward / back
 # between them; exection starts at the "hello dialog" below
 
+############################## MAKE OUTPUT DIALOG ##############################
+
+display_make()
+{
+    MAKE_ARGS="$1"
+    MAKE_CMD="make $MAKE_ARGS 2>&1 | \
+        $DIALOG --backtitle \"jsh installer\" \
+                --title \"making jsh\" \
+                --ok-label \"Continue\" \
+                --programbox 'make $MAKE_ARGS output'
+                 100 100"
+
+    # see if we need sudo (have write rights to install directories)
+    if [ ! -w $INSTALL_PATH ] || [ ! -w $MAN_PATH ]
+    then
+        clear
+        echo "The installer will now execute 'make $MAKE_ARGS'. \
+Since you don't have write rights to these directories, we'll use sudo. Type your sudo \
+password below:"
+        # run the whole pipeline as sudo to avoid having sudo prompting and messing up the
+        # stdout of the dialog
+        echo $MAKE_CMD | sudo sh
+    else
+        echo $MAKE_CMD | sh
+    fi
+
+    retval=$?
+    if [ ! $retval -eq 0 ]
+    then
+        display_info "make jsh" "make exited with an error (return value = $retval) \
+The installer will now exit.\n\nSee (https://github.com/jovanbulck/jo-shell/ \
+wiki/Compiling-and-running) for help on compiling jsh for your system."
+        exit_installer
+    fi
+}
+
 ############################## INSTALL TARGETS DIALOG #############################
 
-query_install_flags()
+query_install_uninstall()
 {
 $DIALOG --backtitle "jsh installer" \
-        --title "Install targets" \
+        --title "Install / uninstall" \
         --ok-label "Continue" \
         --cancel-label "Stop the time" \
-        --separate-output \
-        --checklist "select the install targets below" 10 70 5 \
-        "jsh"   "the jo-shell - a basic UNIX shell implementation in C" on \
-        "man"   "the jsh manpage" on \
+        --radiolist "Do you want to install or uninstall jsh?" 9 75 5 \
+        "install"   "install jsh binary and / or man page" on \
+        "uninstall" "remove jsh binary and man page from default locations" off \
         2> $tempfile
 
 retval=$?
 case $retval in
   0) # OK pressed; parse response
-    while read line
-    do
-        case ${line} in
-        "jsh")
-            echo "you chose jsh";;
-        "man")
-            echo "you chose the man page";;
-        esac
-    done < $tempfile
-    query_compile_flags;; # continue to the next dialog
+    choice=`cat $tempfile`
+    if [ $choice = "install" ]
+    then
+        query_compile_flags # continue to the next dialog
+    else
+        display_make "uninstall JSH_INSTALL_DIR="$INSTALL_PATH" MANPAGE_INSTALL_DIR="$MAN_PATH""
+        display_info "uninstall jsh" "jsh is successfully uninstalled from $INSTALL_PATH and \
+$MAN_PATH\n\njsh development is an ongoing process. Give it a try any time later ;-)"
+        exit_installer_success
+    fi;;
   1)
-    exit_installer;; # Cancel pressed
+    exit_installer;; # "Stop the time" pressed
   255)
     exit_installer;; # ESC pressed
 esac
@@ -97,34 +147,52 @@ esac
 
 query_compile_flags()
 {
+# set saved state
+if $MAKE_MAN ; then TOGGLE_MAN=on ; else TOGGLE_MAN=off ; fi
+if $COLOR_OUTPUT ; then TOGGLE_COLOR=on ; else TOGGLE_COLOR=off ; fi
+if $RC_FILE ; then TOGGLE_RC=on ; else TOGGLE_RC=off ; fi
+if $DEBUG ; then TOGGLE_DBG=on ; else TOGGLE_DBG=off ; fi
+
 $DIALOG --backtitle "jsh installer" \
         --title "Compile flags" \
         --separate-output \
         --ok-label "Continue" \
         --cancel-label "Back" \
-        --checklist "select the compile flags below" 12 90 5 \
-        "color"     "colorize jsh debug and error messages" on \
-        "rcfile"    "auto load the ~/.jshrc file on jsh boot" on \
-        "debug"     "turn on debug output by default" off \
-        "update"    "check for new jsh release on jsh boot" off \
-        "fallback"  "don't use the GNU readline library for input line editing and history" off \
+        --checklist "Select the compile flags below" 12 90 5 \
+        "man"       "include a UNIX man page for jsh, available via 'man jsh'" $TOGGLE_MAN \
+        "color"     "colorize jsh debug and error messages" $TOGGLE_COLOR \
+        "rcfile"    "auto load the ~/.jshrc file at jsh startup" $TOGGLE_RC \
+        "debug"     "turn on debug output by default" $TOGGLE_DBG \
         2> $tempfile
+# some more future option ideas:
+#       "update"    "check for new jsh release at jsh startup" off \
+#       "fallback"  "don't use the GNU readline library for input line editing and history" off \
 
 retval=$?
 case $retval in
   0) # OK pressed; parse response
+    #default all flags to false; any flag chosen by the user will be overriden
+    MAKE_MAN=false
+    COLOR_OUTPUT=false
+    RC_FILE=false
+    DEBUG=false
+    
     while read line
     do
         case ${line} in
-        "jsh")
-            echo "you chose jsh";;
         "man")
-            echo "you chose the man page";;
+            MAKE_MAN=true;;
+        "color")
+            COLOR_OUTPUT=true;;
+        "rcfile")
+            RC_FILE=true;;
+        "debug")
+            DEBUG=true;;                        
         esac
     done < $tempfile
     query_install_dir;; # continue to the next dialog
-  1) # "Back" button pressed
-    query_install_flags;;
+  1)
+    query_install_uninstall;; # Back pressed
   255)
     exit_installer;; # ESC pressed
 esac
@@ -134,9 +202,12 @@ esac
 
 query_install_dir()
 {
+
+if $MAKE_MAN ; then OK_LABEL="Continue" ; else OK_LABEL="Install now" ; fi
+
 $DIALOG --backtitle "jsh installer" \
         --title "Choose install directory" \
-        --ok-label "Continue" \
+        --ok-label "$OK_LABEL" \
         --cancel-label "Back" \
         --inputbox "type the jsh installation directory below" \
         7 50 "$INSTALL_PATH" \
@@ -166,34 +237,37 @@ esac
 
 query_man_dir()
 {
-$DIALOG --backtitle "jsh installer" \
+if $MAKE_MAN
+then
+    $DIALOG --backtitle "jsh installer" \
         --title "Install directory" \
         --ok-label "Install now" \
         --cancel-label "Back" \
         --inputbox "type the jsh manpage installation directory below" \
         8 50 "/usr/local/share/man/man1" \
         2> $tempfile
-
-retval=$?
-case $retval in
-  0) # OK pressed; parse response
-    inputline=`cat $tempfile`
-    if [ ! -d $inputline ]
-    then
-        display_info "Choose man install directory" "The man install path you choose isn't \
-a valid directory. Too bad, try again..."
-        query_man_dir
-    else
-        MAN_PATH=$inputline
-        # continue normal execution
-    fi;;
-  1) # "back" button
-    query_install_dir;;
-  255)
-    exit_installer;; # ESC pressed
-esac
+    retval=$?
+    case $retval in
+        0) # OK pressed; parse response
+            inputline=`cat $tempfile`
+            if [ ! -d $inputline ]
+            then
+                display_info "Choose man install directory" "The man install path you \
+                choose isn't a valid directory. Too bad, try again..."
+                query_man_dir
+            else
+                MAN_PATH=$inputline
+                # continue normal execution
+            fi;;
+        1) # "back" button
+            query_install_dir;;
+        255)
+            exit_installer;; # ESC pressed
+    esac
+else
+    true # continue normal execution
+fi
 }
-
 
 ############################## HELLO DIALOG #############################
 
@@ -208,7 +282,7 @@ then
 fi
 
 # start normal execution of the above dialogs on the next line; continue below thereafter
-query_install_flags
+query_install_uninstall
 
 ############################## JSH CONFIG FILES ##############################
 
@@ -262,7 +336,7 @@ show_edit_config_file_dialog()
     esac
 }
 
-if [ ! -e "$HOME/.jshrc" ]
+if $RC_FILE && [ ! -e "$HOME/.jshrc" ]
 then
     show_config_file_dialog "$HOME/.jshrc" "# ~/.jshrc : file containing jsh-shell commands \
 executed by jsh on startup of an interactive session" "add_dummy_conf"
@@ -279,36 +353,28 @@ then
     show_config_file_dialog "$HOME/.jsh_login" "Hi $USER, welcome back to jsh!"
 fi
 
-############################## MAKE OUTPUT DIALOG ##############################
+############################## MAKE INSTALL JSH ############################
 
-MAKE_CMD="make install JSH_INSTALL_DIR="$INSTALL_PATH" MANPAGE_INSTALL_DIR="$MAN_PATH" 2>&1 | \
-        $DIALOG --backtitle \"jsh installer\" \
-                --title \"making jsh\" \
-                --ok-label \"Continue\" \
-                --programbox \"make install jsh output\" 100 100"
-
-# see if we need sudo (have write rights to install directories)
-if [ ! -w $INSTALL_PATH ] || [ ! -w $MAN_PATH ]
+INSTALL_CFLAGS=""
+if ! $DEBUG
 then
-    clear
-    echo "The installer will now make and install jsh to '$INSTALL_PATH' and '$MAN_PATH'. \
-Since you don't have write rights to these directories, we'll use sudo. Type your sudo \
-password below:"
-    # run the whole pipeline as sudo to avoid having sudo prompting and messing up the
-    # stdout of the dialog
-    echo $MAKE_CMD | sudo sh
-else
-    echo $MAKE_CMD | sh
+    INSTALL_CFLAGS="$INSTALL_CFLAGS-DNODEBUG "
 fi
 
-retval=$?
-if [ ! $retval -eq 0 ]
+if ! $COLOR_OUTPUT
 then
-    display_info "make install jsh" "make install exited with an error (return value = \
-$retval) The installer will now exit.\n\nSee (https://github.com/jovanbulck/jo-shell/ \
-wiki/Compiling-and-running) for help on compiling jsh for your system."
-    exit_installer
+    INSTALL_CFLAGS="$INSTALL_CFLAGS-DNOCOLOR "
 fi
+
+if ! $RC_FILE
+then
+    INSTALL_CFLAGS="$INSTALL_CFLAGS-DNORC "
+fi
+
+FLAGS="install JSH_INSTALL_DIR=\"$INSTALL_PATH\" MANPAGE_INSTALL_DIR=\"$MAN_PATH\" \
+MAKE_MAN=\"$MAKE_MAN\" INSTALL_CFLAGS=\"$INSTALL_CFLAGS\""
+
+display_make "$FLAGS"
 
 ############################## DEFAULT SHELL DIALOG ############################
 
@@ -346,11 +412,7 @@ esac
 
 ############################## EXIT SUCCESS DIALOG #############################
 
-display_info "jsh installation completed" "jsh is installed successfully on your system. \
+display_info "jsh installation completed" "jsh is successfully installed on your system. \
 Have fun with your new shell!\n\n`$INSTALL_PATH/jsh --version`"
 
-rm -f $tempfile
-rm -f $another_tempfile
-clear
-echo "jsh installer exited successfully"
-exit 0
+exit_installer_success
