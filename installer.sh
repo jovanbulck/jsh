@@ -191,7 +191,7 @@ esac
 ############################## HELLO DIALOG #############################
 
 $DIALOG --backtitle "jsh installer" --title "Install jsh" \
-        --msgbox "Hello $USERNAME, this installer will guide you through \
+        --msgbox "Hello $USER, this installer will guide you through \
 the jsh build and install process.\n\nHit enter to continue; ESC any time to abort." 10 41
 
 retval=$?
@@ -269,7 +269,7 @@ fi
 
 if [ ! -e "$HOME/.jsh_login" ]
 then
-    show_config_file_dialog "$HOME/.jsh_login" "Hi $USERNAME, welcome back to jsh!"
+    show_config_file_dialog "$HOME/.jsh_login" "Hi $USER, welcome back to jsh!"
 fi
 
 ############################## MAKE OUTPUT DIALOG ##############################
