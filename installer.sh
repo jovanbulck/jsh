@@ -30,16 +30,18 @@ MAN_PATH="/usr/local/share/man/man1"
 
 # create a tempfile to hold dialogs responses
 tempfile=`tempfile 2>/dev/null` || tempfile=/tmp/jsh_installer$$
+another_temp_file=`tempfile 2>/dev/null` || tempfile=/tmp/jsh_installer_other$$
 
 # cleanup tempfile if any of the signals - SIGHUP SIGINT SIGTERM it received.
-trap "rm -f $tempfile; exit" SIGHUP SIGINT SIGTERM
+trap "rm -f $tempfile; rm -f $another_temp_file; exit" SIGHUP SIGINT SIGTERM
 
 exit_installer()
 {
     clear
-    echo "jsh installer exited"
+    echo "jsh installation aborted"
     rm -f $tempfile
-    exit
+    rm -f $another_tempfile
+    exit 1
 }
 
 display_info()
@@ -63,6 +65,8 @@ query_install_flags()
 {
 $DIALOG --backtitle "jsh installer" \
         --title "Install targets" \
+        --ok-label "Continue" \
+        --cancel-label "Stop the time" \
         --separate-output \
         --checklist "select the install targets below" 10 70 5 \
         "jsh"   "the jo-shell - a basic UNIX shell implementation in C" on \
@@ -96,6 +100,7 @@ query_compile_flags()
 $DIALOG --backtitle "jsh installer" \
         --title "Compile flags" \
         --separate-output \
+        --ok-label "Continue" \
         --cancel-label "Back" \
         --checklist "select the compile flags below" 12 90 5 \
         "color"     "colorize jsh debug and error messages" on \
@@ -131,6 +136,7 @@ query_install_dir()
 {
 $DIALOG --backtitle "jsh installer" \
         --title "Choose install directory" \
+        --ok-label "Continue" \
         --cancel-label "Back" \
         --inputbox "type the jsh installation directory below" \
         7 50 "$INSTALL_PATH" \
@@ -162,6 +168,7 @@ query_man_dir()
 {
 $DIALOG --backtitle "jsh installer" \
         --title "Install directory" \
+        --ok-label "Install now" \
         --cancel-label "Back" \
         --inputbox "type the jsh manpage installation directory below" \
         8 50 "/usr/local/share/man/man1" \
@@ -277,7 +284,7 @@ fi
 MAKE_CMD="make install JSH_INSTALL_DIR="$INSTALL_PATH" MANPAGE_INSTALL_DIR="$MAN_PATH" 2>&1 | \
         $DIALOG --backtitle \"jsh installer\" \
                 --title \"making jsh\" \
-                --exit-label \"Continue\" \
+                --ok-label \"Continue\" \
                 --programbox \"make install jsh output\" 100 100"
 
 # see if we need sudo (have write rights to install directories)
@@ -294,6 +301,15 @@ else
     echo $MAKE_CMD | sh
 fi
 
+retval=$?
+if [ ! $retval -eq 0 ]
+then
+    display_info "make install jsh" "make install exited with an error (return value = \
+$retval) The installer will now exit.\n\nSee (https://github.com/jovanbulck/jo-shell/ \
+wiki/Compiling-and-running) for help on compiling jsh for your system."
+    exit_installer
+fi
+
 ############################## DEFAULT SHELL DIALOG ############################
 
 $DIALOG --backtitle "jsh installer" \
@@ -305,21 +321,24 @@ $DIALOG --backtitle "jsh installer" \
 retval=$?
 case $retval in 
     0) # No pressed
-        echo "not changing the default shell";;
+        ;; # continue normal execution
     1) # Yes pressed
         clear
         echo "changing the default shell to jsh"
         OLD_SHELL=$SHELL
-        chsh -s /usr/local/bin/jsh
-        chsh_retval=$?
+        # redirect chsh stdout and stderr to screen as well as to a file
+        # save the return value of chsh (otherwise $? will be the ret value of tee)
+        { chsh -s /usr/local/bin/jsh 2>&1 ; echo $? > another_temp_file; } | tee $tempfile
+        
+        chsh_retval=`cat another_temp_file`
         if [ $chsh_retval -eq 0 ]
         then
             display_info "changing shell to jsh" "chsh exited successfully: \njsh is now \
 your default UNIX login shell. Use 'chsh -s $OLD_SHELL' any time to revert the default shell."
         else
-            display_info "changing shell to jsh" "chsh exited with an error: \nyour default
-UNIX login shell hasn't changed. Use 'chsh -s $INSTALL_PATH/jsh' after the installation to \
-find out why"
+            display_info "changing shell to jsh" "Your default UNIX login shell hasn't \
+changed. Use 'chsh -s $INSTALL_PATH/jsh' after the installation to retry. chsh says\n\n \
+`cat $tempfile`"
         fi;;
    255) # ESC pressed
         exit_installer;;
@@ -330,4 +349,8 @@ esac
 display_info "jsh installation completed" "jsh is installed successfully on your system. \
 Have fun with your new shell!\n\n`$INSTALL_PATH/jsh --version`"
 
+rm -f $tempfile
+rm -f $another_tempfile
 clear
+echo "jsh installer exited successfully"
+exit 0
