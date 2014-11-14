@@ -26,6 +26,7 @@ DIALOG="dialog --stderr --clear"
 
 #USER=`whoami`
 INSTALL_PATH="/usr/local/bin"
+MAN_PATH="/usr/local/share/man/man1"
 
 # create a tempfile to hold dialogs responses
 tempfile=`tempfile 2>/dev/null` || tempfile=/tmp/jsh_installer$$
@@ -45,7 +46,7 @@ display_info()
 {
     $DIALOG --backtitle "jsh installer" \
             --title "$1" \
-            --msgbox "$2" 8 50 
+            --msgbox "$2" 10 50 
     retval=$?
     if [ $retval -eq 255 ]
     then
@@ -53,20 +54,13 @@ display_info()
     fi
 }
 
-############################## HELLO DIALOG #############################
-
-$DIALOG --backtitle "jsh installer" --title "Install jsh" \
-        --msgbox "Hello $USERNAME, this installer will guide you through \
-the jsh build and install process.\n\nHit enter to continue; ESC any time to abort." 10 41
-
-retval=$?
-if [ $retval -eq 255 ]
-then
-    exit_installer
-fi
+# the following sections define some dialog fucntions in order to move forward / back
+# between them; exection starts at the "hello dialog" below
 
 ############################## INSTALL TARGETS DIALOG #############################
 
+query_install_flags()
+{
 $DIALOG --backtitle "jsh installer" \
         --title "Install targets" \
         --separate-output \
@@ -86,18 +80,23 @@ case $retval in
         "man")
             echo "you chose the man page";;
         esac
-    done < $tempfile;;
+    done < $tempfile
+    query_compile_flags;; # continue to the next dialog
   1)
     exit_installer;; # Cancel pressed
   255)
     exit_installer;; # ESC pressed
 esac
+}
 
 ############################## COMPILE FLAGS DIALOG #############################
 
+query_compile_flags()
+{
 $DIALOG --backtitle "jsh installer" \
         --title "Compile flags" \
         --separate-output \
+        --cancel-label "Back" \
         --checklist "select the compile flags below" 12 90 5 \
         "color"     "colorize jsh debug and error messages" on \
         "rcfile"    "auto load the ~/.jshrc file on jsh boot" on \
@@ -117,18 +116,22 @@ case $retval in
         "man")
             echo "you chose the man page";;
         esac
-    done < $tempfile;;
-  1)
-    exit_installer;; # Cancel pressed
+    done < $tempfile
+    query_install_dir;; # continue to the next dialog
+  1) # "Back" button pressed
+    query_install_flags;;
   255)
     exit_installer;; # ESC pressed
 esac
+}
 
 ############################## SELECT INSTALL DIRECTORY DIALOG ###################
 
-        # --dselect /usr/local/bin -1 -1
+query_install_dir()
+{
 $DIALOG --backtitle "jsh installer" \
-        --title "Install directory" \
+        --title "Choose install directory" \
+        --cancel-label "Back" \
         --inputbox "type the jsh installation directory below" \
         7 50 "$INSTALL_PATH" \
         2> $tempfile
@@ -136,25 +139,30 @@ $DIALOG --backtitle "jsh installer" \
 retval=$?
 case $retval in
   0) # OK pressed; set install path
-    while read line
-    do
-        case ${line} in
-        "jsh")
-            echo "you chose jsh";;
-        "man")
-            echo "you chose the man page";;
-        esac
-    done < $tempfile;;
-  1)
-    exit_installer;; # Cancel pressed
+    inputline=`cat $tempfile`
+    if [ ! -d $inputline ]
+    then
+        display_info "Choose install directory" "The install path you choose isn't a valid \
+directory. Too bad, try again..."
+        query_install_dir
+    else
+        INSTALL_PATH=$inputline
+        query_man_dir # continue to next dialog
+    fi;;
+  1) # "back" button pressed
+    query_compile_flags;;
   255)
     exit_installer;; # ESC pressed
 esac
+}
 
 ############################## SELECT MAN INSTALL DIRECTORY DIALOG ###################
 
+query_man_dir()
+{
 $DIALOG --backtitle "jsh installer" \
         --title "Install directory" \
+        --cancel-label "Back" \
         --inputbox "type the jsh manpage installation directory below" \
         8 50 "/usr/local/share/man/man1" \
         2> $tempfile
@@ -162,20 +170,38 @@ $DIALOG --backtitle "jsh installer" \
 retval=$?
 case $retval in
   0) # OK pressed; parse response
-    while read line
-    do
-        case ${line} in
-        "jsh")
-            echo "you chose jsh";;
-        "man")
-            echo "you chose the man page";;
-        esac
-    done < $tempfile;;
-  1)
-    exit_installer;; # Cancel pressed
+    inputline=`cat $tempfile`
+    if [ ! -d $inputline ]
+    then
+        display_info "Choose man install directory" "The man install path you choose isn't \
+a valid directory. Too bad, try again..."
+        query_man_dir
+    else
+        MAN_PATH=$inputline
+        # continue normal execution
+    fi;;
+  1) # "back" button
+    query_install_dir;;
   255)
     exit_installer;; # ESC pressed
 esac
+}
+
+
+############################## HELLO DIALOG #############################
+
+$DIALOG --backtitle "jsh installer" --title "Install jsh" \
+        --msgbox "Hello $USERNAME, this installer will guide you through \
+the jsh build and install process.\n\nHit enter to continue; ESC any time to abort." 10 41
+
+retval=$?
+if [ $retval -eq 255 ]
+then
+    exit_installer
+fi
+
+# start normal execution of the above dialogs on the next line; continue below thereafter
+query_install_flags
 
 ############################## JSH CONFIG FILES ##############################
 
@@ -247,13 +273,26 @@ then
 fi
 
 ############################## MAKE OUTPUT DIALOG ##############################
-clear
-echo "Will now make and install jsh to '$INSTALL_PATH'. Type your sudo password below:"
-sudo --validate
-make JSH_INSTALL_DIR="$INSTALL_PATH" 2>&1 | $DIALOG --backtitle "jsh installer" \
-        --title "making jsh" \
-        --exit-label "Continue" \
-        --programbox "make install jsh output" 100 100
+
+MAKE_CMD="make install JSH_INSTALL_DIR="$INSTALL_PATH" MANPAGE_INSTALL_DIR="$MAN_PATH" 2>&1 | \
+        $DIALOG --backtitle \"jsh installer\" \
+                --title \"making jsh\" \
+                --exit-label \"Continue\" \
+                --programbox \"make install jsh output\" 100 100"
+
+# see if we need sudo (have write rights to install directories)
+if [ ! -w $INSTALL_PATH ] || [ ! -w $MAN_PATH ]
+then
+    clear
+    echo "The installer will now make and install jsh to '$INSTALL_PATH' and '$MAN_PATH'. \
+Since you don't have write rights to these directories, we'll use sudo. Type your sudo \
+password below:"
+    # run the whole pipeline as sudo to avoid having sudo prompting and messing up the
+    # stdout of the dialog
+    echo $MAKE_CMD | sudo sh
+else
+    echo $MAKE_CMD | sh
+fi
 
 ############################## DEFAULT SHELL DIALOG ############################
 
@@ -289,6 +328,6 @@ esac
 ############################## EXIT SUCCESS DIALOG #############################
 
 display_info "jsh installation completed" "jsh is installed successfully on your system. \
-Have fun with your new shell!"
+Have fun with your new shell!\n\n`$INSTALL_PATH/jsh --version`"
 
 clear
