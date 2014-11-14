@@ -25,7 +25,7 @@ From the `man`page:
 
 ## Get it!
 
-<a href="https://github.com/jovanbulck/jo-shell/releases/latest"><img src="https://github.com/iconic/open-iconic/blob/master/png/cloud-download-6x.png"
+<a href="https://github.com/jovanbulck/jo-shell/releases/latest"><img src="https://cloud.githubusercontent.com/assets/2464627/4872774/dda6369c-61f2-11e4-98de-e14da6836a3b.png"
  alt="Download logo" title="Download latest release" align="left" /></a>
 
 [This page](https://github.com/jovanbulck/jo-shell/releases/latest) provides pre-built binaries for all official `jsh` releases. To build `jsh` yourself, clone this respository, `cd` into it and execute `make`. See [the wiki page](https://github.com/jovanbulck/jo-shell/wiki/Compiling-and-running) for more info and dependencies overview.
