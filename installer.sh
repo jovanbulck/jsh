@@ -22,7 +22,6 @@
 ############################## COMMON THINGS #############################
 
 # default values, overridable by user via dialogs
-#USER=`whoami`
 INSTALL_PATH="/usr/local/bin"
 MAN_PATH="/usr/local/share/man/man1"
 
@@ -35,15 +34,15 @@ DEBUG=false
 DIALOG="dialog --stderr --clear"
 
 # create a tempfile to hold dialogs responses
-tempfile=`tempfile 2>/dev/null` || tempfile=/tmp/jsh_installer$$
-another_temp_file=`tempfile 2>/dev/null` || tempfile=/tmp/jsh_installer_other$$
+tempfile=`tempfile 2>/dev/null` || tempfile=/tmp/jsh_installer_tmp$$
+another_temp_file=`tempfile 2>/dev/null` || another_temp_file=/tmp/jsh_installer_other_tmp$$
 
 exit_installer()
 {
     clear
     echo "jsh installation aborted"
     rm -f $tempfile
-    rm -f $another_tempfile
+    rm -f $another_temp_file
     exit 1
 }
 
@@ -55,7 +54,7 @@ exit_installer_success()
     clear
     echo "jsh installer exited successfully"
     rm -f $tempfile
-    rm -f $another_tempfile
+    rm -f $another_temp_file
     exit 0
 }
 
@@ -87,7 +86,7 @@ display_make()
                  100 100"
 
     # see if we need sudo (have write rights to install directories)
-    if [ ! -w $INSTALL_PATH ] || [ ! -w $MAN_PATH ]
+    if [ ! -w $INSTALL_PATH ] || ( $MAKE_MAN && [ ! -w $MAN_PATH ])
     then
         clear
         echo "The installer will now execute 'make $MAKE_ARGS'. \
@@ -100,7 +99,10 @@ password below:"
         echo $MAKE_CMD | sh
     fi
 
+    #TODO this isn't the return value of make...
     retval=$?
+    echo $retval
+    echo $another_temp_file
     if [ ! $retval -eq 0 ]
     then
         display_info "make jsh" "make exited with an error (return value = $retval) \
@@ -355,24 +357,16 @@ fi
 
 ############################## MAKE INSTALL JSH ############################
 
+# determine the corresponding compile flags previously toggled by the user via dialogs
 INSTALL_CFLAGS=""
-if ! $DEBUG
-then
-    INSTALL_CFLAGS="$INSTALL_CFLAGS-DNODEBUG "
-fi
 
-if ! $COLOR_OUTPUT
-then
-    INSTALL_CFLAGS="$INSTALL_CFLAGS-DNOCOLOR "
-fi
-
-if ! $RC_FILE
-then
-    INSTALL_CFLAGS="$INSTALL_CFLAGS-DNORC "
-fi
+if ! $DEBUG; then INSTALL_CFLAGS="$INSTALL_CFLAGS-DNODEBUG "; fi
+if ! $COLOR_OUTPUT; then INSTALL_CFLAGS="$INSTALL_CFLAGS-DNOCOLOR "; fi
+if ! $RC_FILE; then INSTALL_CFLAGS="$INSTALL_CFLAGS-DNORC "; fi
 
 FLAGS="install JSH_INSTALL_DIR=\"$INSTALL_PATH\" MANPAGE_INSTALL_DIR=\"$MAN_PATH\" \
-MAKE_MAN=\"$MAKE_MAN\" INSTALL_CFLAGS=\"$INSTALL_CFLAGS\""
+INSTALL_CFLAGS=\"$INSTALL_CFLAGS\""
+if ! $MAKE_MAN; then FLAGS="$FLAGS NO_MAKE_MAN=\"true\""; fi
 
 display_make "$FLAGS"
 
@@ -394,9 +388,9 @@ case $retval in
         OLD_SHELL=$SHELL
         # redirect chsh stdout and stderr to screen as well as to a file
         # save the return value of chsh (otherwise $? will be the ret value of tee)
-        { chsh -s /usr/local/bin/jsh 2>&1 ; echo $? > another_temp_file; } | tee $tempfile
+        { chsh -s /usr/local/bin/jsh 2>&1 ; echo $? > $another_temp_file; } | tee $tempfile
         
-        chsh_retval=`cat another_temp_file`
+        chsh_retval=`cat $another_temp_file`
         if [ $chsh_retval -eq 0 ]
         then
             display_info "changing shell to jsh" "chsh exited successfully: \njsh is now \
