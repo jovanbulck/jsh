@@ -94,7 +94,7 @@ int main(int argc, char **argv) {
     if (sigsetjmp(ctrlc_buf, 1) == 0)
         status = 0;     // get here on direct call
     else
-        status ===== -1;    // get here by SIGINT signal
+        status = -1;    // get here by SIGINT signal
     
     char *s;
     while ((s = readcmd(status)) != NULL)
