@@ -1,4 +1,7 @@
 language: c
 compiler:
     - gcc
-script: make
+script: make --always-make
+# disable all email notifications
+notifications:
+  email: false
