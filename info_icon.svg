@@ -28,15 +28,15 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="7.9195959"
-     inkscape:cx="37.975131"
-     inkscape:cy="24.686952"
+     inkscape:cx="24.05951"
+     inkscape:cy="21.956988"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
-     fit-margin-top="0.1"
+     fit-margin-top="0"
      fit-margin-left="25"
      fit-margin-right="25"
-     fit-margin-bottom="0.1"
+     fit-margin-bottom="0"
      inkscape:window-width="1366"
      inkscape:window-height="702"
      inkscape:window-x="0"
@@ -58,18 +58,18 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(-247.82992,-260.73332)">
+     transform="translate(-233.96635,-259.51859)">
     <text
        xml:space="preserve"
-       style="font-size:18.38529015px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
-       x="251.61958"
-       y="306.79053"
+       style="font-size:19.18465042px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="238.30016"
+       y="306.75888"
        id="text2985"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan2987"
-         x="251.61958"
-         y="306.79053"
-         style="font-size:66.18704987px;font-style:italic;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:Ubuntu Mono;-inkscape-font-specification:Ubuntu Mono Bold Italic">i</tspan></text>
+         x="238.30016"
+         y="306.75888"
+         style="font-size:69.06475067px;font-style:italic;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:Ubuntu Mono;-inkscape-font-specification:Ubuntu Mono Bold Italic">i</tspan></text>
   </g>
 </svg>
