@@ -54,8 +54,19 @@ void touch_config_files(void);
 #else
     bool DEBUG = true;
 #endif
-bool COLOR = true;
-bool LOAD_RC = true;
+
+#ifdef NOCOLOR
+    bool COLOR = false;
+#else
+    bool COLOR = true;
+#endif
+
+#ifdef NORC
+    bool LOAD_RC = false;
+#else
+    bool LOAD_RC = true;
+#endif
+
 bool WAITING_FOR_CHILD = false; // whether or not the jsh parent process is currently (blocking) waiting for child termination
 bool I_AM_FORK = false;
 bool IS_INTERACTIVE;            // initialized in things_todo_at_start; (compiler's 'constant initializer' complaints)
