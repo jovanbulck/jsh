@@ -1,6 +1,7 @@
 language: c
 compiler:
     - gcc
+    - clang
 script: make --always-make
 # disable all email notifications
 notifications:
