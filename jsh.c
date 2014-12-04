@@ -410,7 +410,7 @@ char *readcmd(int status) {
     if (buf && *buf) {
         printdebug("You entered: '%s'", buf);
         // do history expansion
-        char *expansion = '\0';
+        char *expansion = "";
         int hist_rv;
         if ((hist_rv = history_expand(buf, &expansion)) != -1) {
             if (hist_rv == 1)
