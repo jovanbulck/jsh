@@ -19,16 +19,38 @@
 # along with jsh.  If not, see <http://www.gnu.org/licenses/>.
 # ============================================================
 
-############################## COMMON THINGS #############################
+############################## STARTUP THINGS #############################
+
+if [ ! command -v dialog >/dev/null 2>&1 ]; then
+    echo "Seems like the 'dialog' program isn't installed on you system."
+    echo "The installer will exit. Try installing jsh yourself with the 'make' utility."
+    echo "See https://github.com/jovanbulck/jo-shell/wiki/Compiling-and-running for more info."
+    exit 1
+fi
+
+if [ `uname -s` = "FreeBSD" ]; then
+    MAKE=gmake
+    MAN_PATH="/usr/local/man/man1"
+    if ! [ command -v gmake >/dev/null 2>&1 ]; then
+        echo "BSD system detected. It seems GNU make ('gmake') isn't installed though."
+        echo "The installer will exit. Try installing jsh yourself with the 'gmake' utility."
+        echo "See https://github.com/jovanbulck/jo-shell/wiki/Compiling-and-running for more info."
+        exit 1
+    fi
+else
+    MAKE=make
+    MAN_PATH="/usr/local/share/man/man1"
+fi
 
 # default values, overridable by user via dialogs
 INSTALL_PATH="/usr/local/bin"
-MAN_PATH="/usr/local/share/man/man1"
 
 MAKE_MAN=true
 COLOR_OUTPUT=true
 RC_FILE=true
 DEBUG=false
+
+############################## COMMON THINGS #############################
 
 # common options for all dialogs
 DIALOG="dialog --stderr --clear"
@@ -78,7 +100,7 @@ display_info()
 display_make()
 {
     MAKE_ARGS="$1"
-    MAKE_CMD="make $MAKE_ARGS 2>&1 | \
+    MAKE_CMD="$MAKE $MAKE_ARGS 2>&1 | \
         $DIALOG --backtitle \"jsh installer\" \
                 --title \"making jsh\" \
                 --ok-label \"Continue\" \

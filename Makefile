@@ -33,7 +33,7 @@ VERSION_STR             = $(DEV_BUILT_VERSION_STR)
 # 'make release' will override the above line to RELEASE_VERSION_STR
 
 ifndef CC # allow the compiler to be changed with 'export CC=the_compiler'
-	CC                      = gcc
+	CC                  = gcc
 endif
 CFLAGS                  = -g -DVERSION='$(VERSION_STR)' $(EXTRA_CFLAGS)
 # EXTRA_CFLAGS is empty on default; 'make install' will add the INSTALL_CFLAGS
