@@ -336,11 +336,7 @@ char* getprompt(int status) {
     char buf[MAX_STATUS_LENGTH];        // used for char / int to string conversion 
     int i;
     for (i = 0; i < strlen(user_prompt_string); i++) {
-        if (user_prompt_string[i] != '%') {
-            snprintf(buf, MAX_STATUS_LENGTH, "%c", user_prompt_string[i]);
-            next = buf;
-        }
-        else {
+        if (user_prompt_string[i] == '%') {
             i++; // potentially overread the '\0' char (harmless)
             switch (user_prompt_string[i]) {
                 case 'u':
@@ -373,11 +369,34 @@ char* getprompt(int status) {
                     next = "%";
                     break;
                 default:
-                    printerr("skipping unrecognized prompt option '%c'", user_prompt_string[i]);
+                    printerr("skipping unrecognized prompt option '%%%c'", user_prompt_string[i]);
                     next = "";
                     break;
             }
         }
+        else if (user_prompt_string[i] == '&') {
+            i++; // potentially overread the '\0' char (harmless)
+            switch (user_prompt_string[i]) {
+                case 'r':
+                    next = "\033[1;31m";
+                    break;
+                case 'n':
+                    next = "\033[0m";
+                    break;
+             default:
+                    printerr("skipping unrecognized prompt color option '&%c'", user_prompt_string[i]);
+                    next = "";
+                    break;
+            }
+        }
+        else {
+            /*snprintf(buf, MAX_STATUS_LENGTH, "%c", user_prompt_string[i]);
+            next = buf;*/
+            buf[0] = user_prompt_string[i];
+            buf[1] = '\0';
+            next = buf;
+        }
+        
         // check length of string to concat; abort to avoid an overflow
         if ((strlen(prompt) + strlen(next)) > MAX_PROMPT_LENGTH) {
             printdebug("Prompt expansion too long: not concatting '%s'. Now returning...", next);
