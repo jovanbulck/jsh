@@ -18,6 +18,7 @@
  */
 
 #include "jsh-common.h"
+#include "jsh-colors.h"
 #include "alias.h"
 #include "jsh-parse.h"
 #include "jsh-completion.h"
@@ -35,8 +36,8 @@
 #define LOGIN_FILE              ".jsh_login"
 #define LOGOUT_FILE             ".jsh_logout"
 #define DEFAULT_PROMPT          "%u@%h[%s]:%d$ "    // default init prompt string: "user@host[status]:pwd$ "
-#define MAX_PROMPT_LENGTH       100                 // maximum length of the displayed prompt string
-#define MAX_STATUS_LENGTH       10                  // the max number of msd of a status integer in the prompt string
+#define MAX_PROMPT_LENGTH       250                 // maximum length of the displayed prompt string
+#define MAX_PROMPT_BUF_LENGTH   50                  // the max number of msd of a status integer in the prompt string
 // ########## function declarations ##########
 void option(char*);
 void things_todo_at_start(void);
@@ -324,30 +325,29 @@ void things_todo_at_exit(void) {
  * getprompt: return a string representing the command prompt (as defined by the user_prompt_string)
  *  iff IS_INTERACTIVE, else the empty string is returned. The returned string is guaranteed to be less then 
  *  MAX_PROMPT_LENGTH; when a directory is expanded in the prompt string, it is 'smart' truncated to MAX_DIR_LENGTH.
- *  When a status integer is included in the prompt string, it is truncated to MAX_STATUS_LENGTH msd digits.
+ *  When a status integer or git branch is included in the prompt string, the strings length is truncated to MAX_PROMPT_BUF_LENGTH.
  */
 char* getprompt(int status) {    
+    // static string to hold the current prompt (return value) between function calls
+    static char prompt[MAX_PROMPT_LENGTH] = "";
+    static char buf[MAX_PROMPT_BUF_LENGTH] = "";    // used for char / int to string conversion 
+    
     if (!IS_INTERACTIVE)
         return "";    
-    
-    static char prompt[MAX_PROMPT_LENGTH] = "";  // static: hold between function calls (because return value)   
-    prompt[0] = '\0';
-    char *next;                         // points to the next substring to add to the prompt
-    char buf[MAX_STATUS_LENGTH];        // used for char / int to string conversion 
+
+    prompt[0] = '\0';               // clear the prev prompt
+    char *next;                     // points to the next substring to add to the prompt
     int i;
     for (i = 0; i < strlen(user_prompt_string); i++) {
-        if (user_prompt_string[i] != '%') {
-            snprintf(buf, MAX_STATUS_LENGTH, "%c", user_prompt_string[i]);
-            next = buf;
-        }
-        else {
+        /*** check for '%' prompt expansion options ***/
+        if (user_prompt_string[i] == '%') {
             i++; // potentially overread the '\0' char (harmless)
             switch (user_prompt_string[i]) {
                 case 'u':
                     next = getenv("USER");
                     break;
                 case 'h':
-                    {   // to allow declarions inside a switch)
+                    {
                     int hostlen = sysconf(_SC_HOST_NAME_MAX)+1; // Plus one for null terminate
                     char hostname[hostlen];
                     gethostname(hostname, hostlen);
@@ -356,7 +356,7 @@ char* getprompt(int status) {
                     break;
                     }
                 case 's':
-                    snprintf(buf, MAX_STATUS_LENGTH, "%d", status);
+                    snprintf(buf, MAX_PROMPT_BUF_LENGTH, "%d", status);
                     next = buf;
                     break;
                 case 'd':
@@ -369,18 +369,106 @@ char* getprompt(int status) {
                     next = ((ptr != NULL) ? ptr : cwd + cwdlen - MAX_DIR_LENGTH);
                     break;
                     }
+                case 'g':
+                    {
+                    char *pwd_is_git = strclone("git rev-parse --git-dir > /dev/null 2> /dev/null");
+	                if (parseexpr(pwd_is_git) == EXIT_SUCCESS) {
+	                    FILE *fp = popen("git symbolic-ref --short -q HEAD", "r");
+	                    buf[0] = '[';
+	                    buf[MAX_PROMPT_BUF_LENGTH-2] = ']';
+	                    buf[MAX_PROMPT_BUF_LENGTH-1] = '\0';
+	                    int j;
+	                    for (j = 1; j < MAX_PROMPT_BUF_LENGTH-2; j++) {
+	                        int cur = getc(fp);
+	                        if (cur == EOF || cur == '\n') {
+	                            buf[j++] = ']';
+	                            buf[j] = '\0';
+	                            break;
+	                        }
+	                        else
+	                            buf[j] = cur;
+	                    }
+	                    next = buf;
+	                    pclose(fp);
+	                }
+	                free(pwd_is_git);
+	                break;
+	                }
                 case '%':
                     next = "%";
                     break;
+                
+                // macro to insert a given ANSI escape color value str iff a given name str matches
+                #define CHK_COLOR(cname, cvalue) \
+                    if (!strncmp(user_prompt_string+i+1, "{" cname "}", strlen("{" cname "}"))) { \
+                        next = cvalue; \
+                        i += strlen("{" cname "}"); \
+                        break; \
+                    } 
+                case 'f':
+                    // fg color, normal
+                    CHK_COLOR("black", BLACK_FG)
+                    CHK_COLOR("red", RED_FG)
+                    CHK_COLOR("green", GREEN_FG)
+                    CHK_COLOR("yellow", YELLOW_FG)
+                    CHK_COLOR("blue", BLUE_FG)
+                    CHK_COLOR("magenta", MAGENTA_FG)
+                    CHK_COLOR("cyan", CYAN_FG)
+                    CHK_COLOR("white", WHITE_FG)
+                    CHK_COLOR("reset", RESET_FG)
+                    CHK_COLOR("resetall", COLOR_RESET_ALL)
+                    
+                    printerr("skipping empty color prompt option: specify non-bold fg color with '%%f{color_name}'");
+                    next = "";
+                    break;
+                case 'F':
+                    // fg color, bold
+                    CHK_COLOR("black", COLOR_BOLD BLACK_FG)
+                    CHK_COLOR("red", COLOR_BOLD RED_FG)
+                    CHK_COLOR("green", COLOR_BOLD GREEN_FG)
+                    CHK_COLOR("yellow", COLOR_BOLD YELLOW_FG)
+                    CHK_COLOR("blue", COLOR_BOLD BLUE_FG)
+                    CHK_COLOR("magenta", COLOR_BOLD MAGENTA_FG)
+                    CHK_COLOR("cyan", COLOR_BOLD CYAN_FG)
+                    CHK_COLOR("white", COLOR_BOLD WHITE_FG)
+                    CHK_COLOR("reset", COLOR_RESET_BOLD RESET_FG)
+                    CHK_COLOR("resetall", COLOR_RESET_ALL)
+                    
+                    // '%F' without specifying a color, means enabling bold style for default color
+                    next = COLOR_BOLD;
+                    break;
+                case 'b':
+                    // bg color, normal
+                    CHK_COLOR("black", COLOR_BOLD BLACK_BG)
+                    CHK_COLOR("red", COLOR_BOLD RED_BG)
+                    CHK_COLOR("green", COLOR_BOLD GREEN_BG)
+                    CHK_COLOR("yellow", COLOR_BOLD YELLOW_BG)
+                    CHK_COLOR("blue", COLOR_BOLD BLUE_BG)
+                    CHK_COLOR("magenta", COLOR_BOLD MAGENTA_BG)
+                    CHK_COLOR("cyan", COLOR_BOLD CYAN_BG)
+                    CHK_COLOR("white", COLOR_BOLD WHITE_BG)
+                    CHK_COLOR("reset", COLOR_RESET_BOLD RESET_BG)
+                    CHK_COLOR("resetall", COLOR_RESET_ALL)
+                    
+                    printerr("skipping empty color prompt option: specify non-bold bg color with '%%b{color_name}'");
+                    next = "";
+                    break;
                 default:
-                    printerr("skipping unrecognized prompt option '%c'", user_prompt_string[i]);
+                    printerr("skipping unrecognized prompt option '%%%c'", user_prompt_string[i]);
                     next = "";
                     break;
             }
         }
-        // check length of string to concat; abort to avoid an overflow
+        /*** no prompt expansion; copy the char verbatim ***/        
+        else {
+            buf[0] = user_prompt_string[i];
+            buf[1] = '\0';
+            next = buf;
+        }
+        
+        /*** check length of string to concat; abort to avoid an overflow ***/
         if ((strlen(prompt) + strlen(next)) > MAX_PROMPT_LENGTH) {
-            printdebug("Prompt expansion too long: not concatting '%s'. Now returning...", next);
+            printerr("Prompt expansion too long: not concatting '%s'. Now returning...", next);
             return prompt;
         }
         strcat(prompt, next);
