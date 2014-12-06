@@ -20,38 +20,40 @@
 #ifndef JSH_COLORS_H_INCLUDED
 #define JSH_COLORS_H_INCLUDED
 
+// surround non-printing escape sequences with '\x01' and '\x02' for GNU readline lib
+//  see e.g. http://bugs.python.org/issue20359
+
 // ANSI escape foreground color codes (see https://en.wikipedia.org/wiki/ANSI_escape_code)
-#define BLACK_FG            "\033[30m"
-#define RED_FG              "\033[31m"
-#define GREEN_FG            "\033[32m"
-#define YELLOW_FG           "\033[33m"
-#define BLUE_FG             "\033[34m"
-#define MAGENTA_FG          "\033[35m"
-#define CYAN_FG             "\033[36m"
-#define WHITE_FG            "\033[37m"
-#define RESET_FG            "\033[39m"
+#define BLACK_FG            "\x01\033[30m\x02"
+#define RED_FG              "\x01\033[31m\x02"
+#define GREEN_FG            "\x01\033[32m\x02"
+#define YELLOW_FG           "\x01\033[33m\x02"
+#define BLUE_FG             "\x01\033[34m\x02"
+#define MAGENTA_FG          "\x01\033[35m\x02"
+#define CYAN_FG             "\x01\033[36m\x02"
+#define WHITE_FG            "\x01\033[37m\x02"
+#define RESET_FG            "\x01\033[39m\x02"
 
 // ANSI escape background color codes
-#define BLACK_BG            "\033[40m"
-#define RED_BG              "\033[41m"
-#define GREEN_BG            "\033[42m"
-#define YELLOW_BG           "\033[43m"
-#define BLUE_BG             "\033[44m"
-#define MAGENTA_BG          "\033[45m"
-#define CYAN_BG             "\033[46m"
-#define WHITE_BG            "\033[47m"
-#define RESET_BG            "\033[49m"
+#define BLACK_BG            "\x01\033[40m\x02"
+#define RED_BG              "\x01\033[41m\x02"
+#define GREEN_BG            "\x01\033[42m\x02"
+#define YELLOW_BG           "\x01\033[43m\x02"
+#define BLUE_BG             "\x01\033[44m\x02"
+#define MAGENTA_BG          "\x01\033[45m\x02"
+#define CYAN_BG             "\x01\033[46m\x02"
+#define WHITE_BG            "\x01\033[47m\x02"
+#define RESET_BG            "\x01\033[49m\x02"
 
 // ANSI escape style color codes
-#define COLOR_RESET_ALL     "\033[0m"   // back to defaults
-#define COLOR_BOLD 		    "\033[1m"   // implemented as 'bright' on some terminals
-#define COLOR_RESET_BOLD    "\033[22m"
+#define COLOR_RESET_ALL     "\x01\033[0m\x02"   // back to defaults
+#define COLOR_BOLD 		    "\x01\033[1m\x02"   // implemented as 'bright' on some terminals
+#define COLOR_RESET_BOLD    "\x01\033[22m\x02"
 
 // (the following are not widely supported)
-#define COLOR_DIM		    "\033[2m"
-#define COLOR_UNDERLINE     "\033[3m"
-#define COLOR_BLINK		    "\033[4m"
-#define COLOR_REVERSE       "\033[7m"
-#define COLOR_HIDDEN        "\033[8m"
+#define COLOR_DIM		    "\x01\033[2m\x02"
+#define COLOR_UNDERLINE     "\x01\033[3m\x02"
+#define COLOR_BLINK		    "\x01\033[4m\x02"
+#define COLOR_REVERSE       "\x01\033[7m\x02"
 
 #endif // JSH_COLORS_H_INCLUDED

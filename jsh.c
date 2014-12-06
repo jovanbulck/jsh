@@ -36,7 +36,7 @@
 #define LOGIN_FILE              ".jsh_login"
 #define LOGOUT_FILE             ".jsh_logout"
 #define DEFAULT_PROMPT          "%u@%h[%s]:%d$ "    // default init prompt string: "user@host[status]:pwd$ "
-#define MAX_PROMPT_LENGTH       100                 // maximum length of the displayed prompt string
+#define MAX_PROMPT_LENGTH       250                 // maximum length of the displayed prompt string
 #define MAX_STATUS_LENGTH       10                  // the max number of msd of a status integer in the prompt string
 // ########## function declarations ##########
 void option(char*);
