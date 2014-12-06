@@ -37,7 +37,7 @@
 #define LOGOUT_FILE             ".jsh_logout"
 #define DEFAULT_PROMPT          "%u@%h[%s]:%d$ "    // default init prompt string: "user@host[status]:pwd$ "
 #define MAX_PROMPT_LENGTH       250                 // maximum length of the displayed prompt string
-#define MAX_STATUS_LENGTH       10                  // the max number of msd of a status integer in the prompt string
+#define MAX_PROMPT_BUF_LENGTH   50                  // the max number of msd of a status integer in the prompt string
 // ########## function declarations ##########
 void option(char*);
 void things_todo_at_start(void);
@@ -325,18 +325,18 @@ void things_todo_at_exit(void) {
  * getprompt: return a string representing the command prompt (as defined by the user_prompt_string)
  *  iff IS_INTERACTIVE, else the empty string is returned. The returned string is guaranteed to be less then 
  *  MAX_PROMPT_LENGTH; when a directory is expanded in the prompt string, it is 'smart' truncated to MAX_DIR_LENGTH.
- *  When a status integer is included in the prompt string, it is truncated to MAX_STATUS_LENGTH msd digits.
+ *  When a status integer or git branch is included in the prompt string, the strings length is truncated to MAX_PROMPT_BUF_LENGTH.
  */
 char* getprompt(int status) {    
     // static string to hold the current prompt (return value) between function calls
     static char prompt[MAX_PROMPT_LENGTH] = "";
+    static char buf[MAX_PROMPT_BUF_LENGTH] = "";    // used for char / int to string conversion 
     
     if (!IS_INTERACTIVE)
         return "";    
 
     prompt[0] = '\0';               // clear the prev prompt
     char *next;                     // points to the next substring to add to the prompt
-    char buf[MAX_STATUS_LENGTH];    // used for char / int to string conversion 
     int i;
     for (i = 0; i < strlen(user_prompt_string); i++) {
         /*** check for '%' prompt expansion options ***/
@@ -356,7 +356,7 @@ char* getprompt(int status) {
                     break;
                     }
                 case 's':
-                    snprintf(buf, MAX_STATUS_LENGTH, "%d", status);
+                    snprintf(buf, MAX_PROMPT_BUF_LENGTH, "%d", status);
                     next = buf;
                     break;
                 case 'd':
@@ -369,6 +369,31 @@ char* getprompt(int status) {
                     next = ((ptr != NULL) ? ptr : cwd + cwdlen - MAX_DIR_LENGTH);
                     break;
                     }
+                case 'g':
+                    {
+                    char *pwd_is_git = strclone("git rev-parse --git-dir > /dev/null 2> /dev/null");
+	                if (parseexpr(pwd_is_git) == EXIT_SUCCESS) {
+	                    FILE *fp = popen("git symbolic-ref --short -q HEAD", "r");
+	                    buf[0] = '[';
+	                    buf[MAX_PROMPT_BUF_LENGTH-2] = ']';
+	                    buf[MAX_PROMPT_BUF_LENGTH-1] = '\0';
+	                    int j;
+	                    for (j = 1; j < MAX_PROMPT_BUF_LENGTH-2; j++) {
+	                        int cur = getc(fp);
+	                        if (cur == EOF || cur == '\n') {
+	                            buf[j++] = ']';
+	                            buf[j] = '\0';
+	                            break;
+	                        }
+	                        else
+	                            buf[j] = cur;
+	                    }
+	                    next = buf;
+	                    pclose(fp);
+	                }
+	                free(pwd_is_git);
+	                break;
+	                }
                 case '%':
                     next = "%";
                     break;
