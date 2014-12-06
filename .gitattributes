@@ -1,0 +1,2 @@
+# override the auto-detected language for some C files that github classifies as C++
+jsh-colors.h linguist-language=C
