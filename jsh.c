@@ -434,23 +434,6 @@ char* getprompt(int status) {
                     break;
             }
         }
-        /*
-        /*** check for '#' color prompt expansion options  
-        else if (user_prompt_string[i] == '#') {
-            i++; // potentially overread the '\0' char (harmless)
-            switch (user_prompt_string[i]) {
-                case 'r':
-                    next = "\033[1;31m";
-                    break;
-                case 'n':
-                    next = "\033[0m";
-                    break;
-             default:
-                    printerr("skipping unrecognized prompt color option '&%c'", user_prompt_string[i]);
-                    next = "";
-                    break;
-            }
-        }*/
         /*** no prompt expansion; copy the char verbatim ***/        
         else {
             buf[0] = user_prompt_string[i];
