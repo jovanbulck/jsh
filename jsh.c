@@ -344,6 +344,9 @@ char* getprompt(int status) {
             i++; // potentially overread the '\0' char (harmless)
             switch (user_prompt_string[i]) {
                 case 'u':
+                    next = getenv("USER");
+                    break;
+                case 'U':
                     {
                     char *username = getenv("USER");
                     // XXX make the username red and bold when sudo access is activated

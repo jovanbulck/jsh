@@ -36,7 +36,7 @@ display licence information and exit
 .TP
 \fB\-v, \--version\fP
 display version information and exit
-.SH FILES
+.SH CONFIG FILES
 .TP
 \fI~/.jshrc\fP
 file containing commands to be executed at login (note using the \fBsource\fP builtin, one can include any other file to be processed at startup)
@@ -49,6 +49,38 @@ file containing commands to be executed at logout of an interactive session
 .TP
 \fI~/.jsh_history\fP
 file containing the command history auto loaded and saved at login/logout
+.SH PROMPT CUSTOMIZING
+You can define a custom \fBjsh\fP prompt using the \fBprompt\fP builtin command: \fBprompt\fP "prompt_string" [max_cwd_length]. The first argument defines the new prompt string. The second optional argument defines the maximum length for the current working directory, included with '%d'.  One can include the following prompt expansion options preceded by a '%' char in the prompt string:
+.TP
+\fB%u\fP
+includes the current username
+.TP
+\fB%U\fP
+includes the current username, colored red and bold iff \fBsudo\fP access is activated
+.TP
+\fB%h\fP
+includes the current hostname
+.TP
+\fB%s\fP
+includes the return value of the last executed shell command
+.TP
+\fB%d\fP
+includes the current working directory. When this directory path is longer then the value specified by the optional \fBmax_cwd_length\fP second argument (default is 25), the directory path is 'smart' truncated to include the maximum number of individual trailing directories of the path.
+.TP
+\fB%g\fP
+includes the \fBgit\fP branch name iff the current working directory is a \fBgit\fP repository
+.TP
+\fB%%\fP
+includes the verbatim '%' character
+.TP
+\fB%f{color_name}\fP
+Enables the specified foreground non-bold text color. Recognized colors are {black, red, green, yellow, blue, magenta, cyan, white}. The special colors {reset, resetall} can be used to respectively reset the foreground color to the default or reset all color properties to default.
+.TP
+\fB%F{color_name}\fP
+Enables the specified foreground bold/bright text color. Recognized colors are the same as with \fB%f\fP above. The special colors {reset, resetall} can be used to respectively disable bold style and reset the foreground color to the default or reset all color properties to default.
+.TP
+\fB%b{color_name}\fP
+Enables the specified background text color. Recognized colors are the same as with \fB%f\fP above. The special colors {reset, resetall} can be used to respectively reset the background color to the default or reset all color properties to default.
 .SH THE JSH WIKI
 \fBjsh\fP has a wiki (https://github.com/jovanbulck/jo-shell/wiki) where you can find up-to-date information and installation instructions for various platforms.
 .SH BUGS REPORTS
