@@ -344,8 +344,22 @@ char* getprompt(int status) {
             i++; // potentially overread the '\0' char (harmless)
             switch (user_prompt_string[i]) {
                 case 'u':
-                    next = getenv("USER");
+                    {
+                    char *username = getenv("USER");
+                    // XXX make the username red and bold when sudo access is activated
+                    // see e.g. http://stackoverflow.com/questions/122276/quickly-check-whether-sudo-permissions-are-available
+                    char *cur_user_has_sudo = strclone("sudo -n true > /dev/null 2> /dev/null");
+	                if (parseexpr(cur_user_has_sudo) == EXIT_SUCCESS) {
+	                    snprintf(buf, MAX_PROMPT_BUF_LENGTH, "%s%s%s", COLOR_BOLD RED_FG, \
+	                        username, COLOR_RESET_BOLD RESET_FG);
+	                    next = buf;
+	                }
+	                else
+	                    next = username;
+	                
+	                free(cur_user_has_sudo);
                     break;
+                    }
                 case 'h':
                     {
                     int hostlen = sysconf(_SC_HOST_NAME_MAX)+1; // Plus one for null terminate
