@@ -9,7 +9,7 @@ jsh (jo-shell) \- A basic UNIX shell implementation in C
 .SH DESCRIPTION
 \fBjsh\fP is a UNIX command interpreter (shell) that executes commands read from the standard input or from a file. \fBjsh\fP implements a subset of the \fBsh\fP language grammar and is intended to be POSIX-conformant.
 
-\fBjsh\fP is written 'just for fun' and is not intented to be a full competitor to advanced UNIX shells such as \fBbash\fP and \fBzsh\fP. \fBjsh\fP is free software and you are welcome to collaborate on the github page (https://github.com/jovanbulck/jo-shell) or to redistribute jsh under the conditions of the GNU General Public License.
+\fBjsh\fP is written 'just for fun' and is not intented to be a full competitor to advanced UNIX shells such as \fBbash\fP and \fBzsh\fP. \fBjsh\fP is free software and you are welcome to collaborate on the github page (https://github.com/jovanbulck/jo-shell) or to redistribute \fBjsh\fP under the conditions of the GNU General Public License.
 .SH OPTIONS
 \fBjsh\fP supports any combination of the following options:
 .TP
@@ -70,17 +70,20 @@ includes the current working directory. When this directory path is longer then 
 \fB%g\fP
 includes the \fBgit\fP branch name iff the current working directory is a \fBgit\fP repository
 .TP
+\fB%$\fP
+includes a '$' char or a '#' char iff \fBsudo\fP access is activated (usefull for the prompt ending)
+.TP
 \fB%%\fP
 includes the verbatim '%' character
 .TP
 \fB%f{color_name}\fP
-Enables the specified foreground non-bold text color. Recognized colors are {black, red, green, yellow, blue, magenta, cyan, white}. The special colors {reset, resetall} can be used to respectively reset the foreground color to the default or reset all color properties to default.
+Enables the specified foreground non-bold text color. Recognized colors are \fB{black, red, green, yellow, blue, magenta, cyan, white}\fP. The special colors \fB{reset, resetall}\fP can be used to respectively reset the foreground color to the default or reset all color properties to default.
 .TP
 \fB%F{color_name}\fP
-Enables the specified foreground bold/bright text color. Recognized colors are the same as with \fB%f\fP above. The special colors {reset, resetall} can be used to respectively disable bold style and reset the foreground color to the default or reset all color properties to default.
+Enables the specified foreground bold/bright text color. Recognized colors are the same as with \fB%f\fP above. The special colors \fB{reset, resetall}\fP can be used to respectively disable bold style and reset the foreground color to the default or reset all color properties to default.
 .TP
 \fB%b{color_name}\fP
-Enables the specified background text color. Recognized colors are the same as with \fB%f\fP above. The special colors {reset, resetall} can be used to respectively reset the background color to the default or reset all color properties to default.
+Enables the specified background text color. Recognized colors are the same as with \fB%f\fP above. The special colors \fB{reset, resetall}\fP can be used to respectively reset the background color to the default or reset all color properties to default.
 .SH THE JSH WIKI
 \fBjsh\fP has a wiki (https://github.com/jovanbulck/jo-shell/wiki) where you can find up-to-date information and installation instructions for various platforms.
 .SH BUGS REPORTS

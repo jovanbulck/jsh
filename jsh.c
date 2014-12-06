@@ -349,7 +349,7 @@ char* getprompt(int status) {
                 case 'U':
                     {
                     char *username = getenv("USER");
-                    // XXX make the username red and bold when sudo access is activated
+                    // make the username red and bold when sudo access is activated
                     // see e.g. http://stackoverflow.com/questions/122276/quickly-check-whether-sudo-permissions-are-available
                     char *cur_user_has_sudo = strclone("sudo -n true > /dev/null 2> /dev/null");
 	                if (parseexpr(cur_user_has_sudo) == EXIT_SUCCESS) {
@@ -359,6 +359,17 @@ char* getprompt(int status) {
 	                }
 	                else
 	                    next = username;
+	                
+	                free(cur_user_has_sudo);
+                    break;
+                    }
+                case '$':
+                    {
+                    char *cur_user_has_sudo = strclone("sudo -n true > /dev/null 2> /dev/null");
+	                if (parseexpr(cur_user_has_sudo) == EXIT_SUCCESS)
+	                    next = "#";
+	                else
+	                    next = "$";
 	                
 	                free(cur_user_has_sudo);
                     break;
