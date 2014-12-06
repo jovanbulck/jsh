@@ -18,6 +18,7 @@
  */
 
 #include "jsh-common.h"
+#include "jsh-colors.h"
 #include "alias.h"
 #include "jsh-parse.h"
 #include "jsh-completion.h"
@@ -327,15 +328,18 @@ void things_todo_at_exit(void) {
  *  When a status integer is included in the prompt string, it is truncated to MAX_STATUS_LENGTH msd digits.
  */
 char* getprompt(int status) {    
+    // static string to hold the current prompt (return value) between function calls
+    static char prompt[MAX_PROMPT_LENGTH] = "";
+    
     if (!IS_INTERACTIVE)
         return "";    
-    
-    static char prompt[MAX_PROMPT_LENGTH] = "";  // static: hold between function calls (because return value)   
-    prompt[0] = '\0';
-    char *next;                         // points to the next substring to add to the prompt
-    char buf[MAX_STATUS_LENGTH];        // used for char / int to string conversion 
+
+    prompt[0] = '\0';               // clear the prev prompt
+    char *next;                     // points to the next substring to add to the prompt
+    char buf[MAX_STATUS_LENGTH];    // used for char / int to string conversion 
     int i;
     for (i = 0; i < strlen(user_prompt_string); i++) {
+        /*** check for '%' prompt expansion options ***/
         if (user_prompt_string[i] == '%') {
             i++; // potentially overread the '\0' char (harmless)
             switch (user_prompt_string[i]) {
@@ -343,7 +347,7 @@ char* getprompt(int status) {
                     next = getenv("USER");
                     break;
                 case 'h':
-                    {   // to allow declarions inside a switch)
+                    {
                     int hostlen = sysconf(_SC_HOST_NAME_MAX)+1; // Plus one for null terminate
                     char hostname[hostlen];
                     gethostname(hostname, hostlen);
@@ -368,13 +372,71 @@ char* getprompt(int status) {
                 case '%':
                     next = "%";
                     break;
+                
+                // macro to insert a given ANSI escape color value str iff a given name str matches
+                #define CHK_COLOR(cname, cvalue) \
+                    if (!strncmp(user_prompt_string+i+1, "{" cname "}", strlen("{" cname "}"))) { \
+                        next = cvalue; \
+                        i += strlen("{" cname "}"); \
+                        break; \
+                    } 
+                case 'f':
+                    // fg color, normal
+                    CHK_COLOR("black", BLACK_FG)
+                    CHK_COLOR("red", RED_FG)
+                    CHK_COLOR("green", GREEN_FG)
+                    CHK_COLOR("yellow", YELLOW_FG)
+                    CHK_COLOR("blue", BLUE_FG)
+                    CHK_COLOR("magenta", MAGENTA_FG)
+                    CHK_COLOR("cyan", CYAN_FG)
+                    CHK_COLOR("white", WHITE_FG)
+                    CHK_COLOR("reset", RESET_FG)
+                    CHK_COLOR("resetall", COLOR_RESET_ALL)
+                    
+                    printerr("skipping empty color prompt option: specify non-bold fg color with '%%f{color_name}'");
+                    next = "";
+                    break;
+                case 'F':
+                    // fg color, bold
+                    CHK_COLOR("black", COLOR_BOLD BLACK_FG)
+                    CHK_COLOR("red", COLOR_BOLD RED_FG)
+                    CHK_COLOR("green", COLOR_BOLD GREEN_FG)
+                    CHK_COLOR("yellow", COLOR_BOLD YELLOW_FG)
+                    CHK_COLOR("blue", COLOR_BOLD BLUE_FG)
+                    CHK_COLOR("magenta", COLOR_BOLD MAGENTA_FG)
+                    CHK_COLOR("cyan", COLOR_BOLD CYAN_FG)
+                    CHK_COLOR("white", COLOR_BOLD WHITE_FG)
+                    CHK_COLOR("reset", COLOR_RESET_BOLD RESET_FG)
+                    CHK_COLOR("resetall", COLOR_RESET_ALL)
+                    
+                    // '%F' without specifying a color, means enabling bold style for default color
+                    next = COLOR_BOLD;
+                    break;
+                case 'b':
+                    // bg color, normal
+                    CHK_COLOR("black", COLOR_BOLD BLACK_BG)
+                    CHK_COLOR("red", COLOR_BOLD RED_BG)
+                    CHK_COLOR("green", COLOR_BOLD GREEN_BG)
+                    CHK_COLOR("yellow", COLOR_BOLD YELLOW_BG)
+                    CHK_COLOR("blue", COLOR_BOLD BLUE_BG)
+                    CHK_COLOR("magenta", COLOR_BOLD MAGENTA_BG)
+                    CHK_COLOR("cyan", COLOR_BOLD CYAN_BG)
+                    CHK_COLOR("white", COLOR_BOLD WHITE_BG)
+                    CHK_COLOR("reset", COLOR_RESET_BOLD RESET_BG)
+                    CHK_COLOR("resetall", COLOR_RESET_ALL)
+                    
+                    printerr("skipping empty color prompt option: specify non-bold bg color with '%%b{color_name}'");
+                    next = "";
+                    break;
                 default:
                     printerr("skipping unrecognized prompt option '%%%c'", user_prompt_string[i]);
                     next = "";
                     break;
             }
         }
-        else if (user_prompt_string[i] == '&') {
+        /*
+        /*** check for '#' color prompt expansion options  
+        else if (user_prompt_string[i] == '#') {
             i++; // potentially overread the '\0' char (harmless)
             switch (user_prompt_string[i]) {
                 case 'r':
@@ -388,18 +450,17 @@ char* getprompt(int status) {
                     next = "";
                     break;
             }
-        }
+        }*/
+        /*** no prompt expansion; copy the char verbatim ***/        
         else {
-            /*snprintf(buf, MAX_STATUS_LENGTH, "%c", user_prompt_string[i]);
-            next = buf;*/
             buf[0] = user_prompt_string[i];
             buf[1] = '\0';
             next = buf;
         }
         
-        // check length of string to concat; abort to avoid an overflow
+        /*** check length of string to concat; abort to avoid an overflow ***/
         if ((strlen(prompt) + strlen(next)) > MAX_PROMPT_LENGTH) {
-            printdebug("Prompt expansion too long: not concatting '%s'. Now returning...", next);
+            printerr("Prompt expansion too long: not concatting '%s'. Now returning...", next);
             return prompt;
         }
         strcat(prompt, next);
