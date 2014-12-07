@@ -432,6 +432,21 @@ char* getprompt(int status) {
 	                free(pwd_is_git);
 	                break;
 	                }
+	            case 'c':
+	                {
+                    char *pwd_is_git = strclone("git rev-parse --git-dir > /dev/null 2> /dev/null");
+	                char *files_have_changed = strclone("git diff --exit-code > /dev/null 2> /dev/null");                    
+	                if ( (parseexpr(pwd_is_git) == EXIT_SUCCESS) && (parseexpr(files_have_changed) != EXIT_SUCCESS) ) {
+                        snprintf(buf, MAX_PROMPT_BUF_LENGTH, "%s%c%s", COLOR_BOLD RED_FG, \
+	                        '*', COLOR_RESET_BOLD RESET_FG);
+	                    next = buf;
+                    }
+	                else
+	                    next = "";
+	                free(pwd_is_git);
+                    free(files_have_changed);	                
+	                break;
+	                }
                 case '%':
                     next = "%";
                     break;
