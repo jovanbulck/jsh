@@ -74,7 +74,7 @@ bool I_AM_FORK = false;
 bool IS_INTERACTIVE;            // initialized in things_todo_at_start; (compiler's 'constant initializer' complaints)
 int nb_hist_entries = 0;        // number of saved hist entries in this jsh session
 sigjmp_buf ctrlc_buf;           // buf used for setjmp/longjmp when SIGINT received
-char *user_prompt_string = ">"; // initialized in things_todo_at_start function
+char *user_prompt_string = "$ ";// initialized in things_todo_at_start function
 int MAX_DIR_LENGTH = 25;        // the maximum length of an expanded pwd substring in the prompt string
 
 /*
@@ -416,7 +416,7 @@ char* getprompt(int status) {
                     // get a ptr to the first '/' + 1 within the truncated directory string
                     if (cwdlen > MAX_DIR_LENGTH) {
                         ptr = strchr(cwd + cwdlen - MAX_DIR_LENGTH, '/');
-                        ptr = (ptr < cwd+cwdlen-1)? ptr+1 : ptr;   
+                        ptr = (ptr && ptr < cwd+cwdlen-1)? ptr+1 : ptr;
                     }
                     next = ptr? ptr : cwd + ((MAX_DIR_LENGTH < cwdlen) ? cwdlen - MAX_DIR_LENGTH : 0);
                     break;
