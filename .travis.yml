@@ -2,7 +2,7 @@ language: c
 compiler:
     - gcc
     - clang
-script: make install && echo "source ./.jsh_travis_test_script.sh" | jsh --nodebug --norc
+script: sudo make install && echo "source ./.jsh_travis_test_script.sh" | jsh --nodebug --norc
 
 # disable all email notifications
 # notifications:
