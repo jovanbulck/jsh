@@ -409,9 +409,11 @@ char* getprompt(int status) {
                     
                     int cwdlen = strlen(cwd);
                     char *ptr = NULL;
-                    // get a ptr to the first '/' within the truncated directory string
-                    if (cwdlen > MAX_DIR_LENGTH)
+                    // get a ptr to the first '/' + 1 within the truncated directory string
+                    if (cwdlen > MAX_DIR_LENGTH) {
                         ptr = strchr(cwd + cwdlen - MAX_DIR_LENGTH, '/');
+                        ptr = (ptr < cwd+cwdlen-1)? ptr+1 : ptr;   
+                    }
                     next = ptr? ptr : cwd + ((MAX_DIR_LENGTH < cwdlen) ? cwdlen - MAX_DIR_LENGTH : 0);
                     break;
                     }
