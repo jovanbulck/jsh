@@ -258,7 +258,7 @@ void things_todo_at_start(void) {
     // read ~/.jshrc if any
     if (LOAD_RC) {
         path = concat(3, gethome(), "/", RCFILE);
-        parsefile(path, (void (*)(char*)) parseexpr, false);
+        parsefile(path, (void (*)(char*)) parse_from_file, false);
         free(path);
     }
     
@@ -311,7 +311,7 @@ void things_todo_at_exit(void) {
         bool dbg = DEBUG;
         DEBUG = false;
         char *path = concat(3, gethome(), "/", LOGOUT_FILE);
-        parsefile(path, (void (*)(char*)) parseexpr, false);
+        parsefile(path, (void (*)(char*)) parse_from_file, false);
         free(path);
         DEBUG = dbg;
         printdebug("'%s' executed", LOGOUT_FILE);
@@ -771,7 +771,7 @@ int parse_built_in(comd *comd, int index) {
             break;
 		case SRC:
 			CHK_ARGC("source", 1);
-			parsefile(comd->cmd[1], (void (*)(char*)) parseexpr, true); // errormsg if file not found
+			parsefile(comd->cmd[1], (void (*)(char*)) parse_from_file, true); // errormsg if file not found
 			return EXIT_SUCCESS;
 			break;
         default:
