@@ -387,6 +387,14 @@ char* getprompt(int status) {
                     snprintf(buf, MAX_PROMPT_BUF_LENGTH, "%d", status);
                     next = buf;
                     break;
+                case 'S':
+                    if (!status)
+                        snprintf(buf, MAX_PROMPT_BUF_LENGTH, "%d", status);
+                    else
+                        snprintf(buf, MAX_PROMPT_BUF_LENGTH, "%s%d%s", COLOR_BOLD RED_FG, \
+	                        status, COLOR_RESET_BOLD RESET_FG);
+                    next = buf;
+                    break;
                 case 'd':
                     {
                     // get the directory                
@@ -419,20 +427,63 @@ char* getprompt(int status) {
 	                    next = buf;
 	                    pclose(fp);
 	                }
+	                else
+	                    next = "";
 	                free(pwd_is_git);
 	                break;
 	                }
                 case '%':
                     next = "%";
                     break;
-                
-                // macro to insert a given ANSI escape color value str iff a given name str matches
-                #define CHK_COLOR(cname, cvalue) \
-                    if (!strncmp(user_prompt_string+i+1, "{" cname "}", strlen("{" cname "}"))) { \
-                        next = cvalue; \
-                        i += strlen("{" cname "}"); \
-                        break; \
-                    } 
+                default:
+                    printerr("skipping unrecognized prompt option '%%%c'", user_prompt_string[i]);
+                    next = "";
+                    break;
+            }
+        }
+        /*** no prompt expansion; copy the char verbatim ***/        
+        else {
+            sprintf(buf, "%c", user_prompt_string[i]);
+            next = buf;
+        }
+        
+        /*** check length of string to concat; abort to avoid an overflow ***/
+        if ((strlen(prompt) + strlen(next)) >= MAX_PROMPT_LENGTH) {
+            printerr("Prompt expansion too long: not concatting '%s'. Now returning...", next);
+            return prompt;
+        }
+        strcat(prompt, next);
+    }
+    return prompt;
+}
+
+/**
+ * resolve_prompt_colors: return a newly malloced prompt string with the
+ *  symbolic color expansion codes replaced with the corresponding ANSI escape codes.
+ *  This function can be called once on new promp initialisation to save time on
+ *  subsequent prompt re-evaluations.
+ * NOTE: the return value is a malloced str with length MAX_PROMPT_LENGTH; when the 
+ *  expansion is longer, it is truncated and an error message is written to stdout
+ */
+char *resolve_prompt_colors(char *prompt) {
+    char *rv = malloc(MAX_PROMPT_LENGTH);
+    rv[0] = '\0';
+    char buf[3]; // to hold the next char and '%' temporarily to append to rv
+
+    // macro to insert a given ANSI escape color value str iff a given name str matches
+    #define CHK_COLOR(cname, cvalue) \
+        if (!strncmp(prompt+i+1, "{" cname "}", strlen("{" cname "}"))) { \
+            next = cvalue; \
+            i += strlen("{" cname "}"); \
+            break; \
+        } 
+    
+    char *next;
+    int i;
+    for (i = 0; i < strlen(prompt); i++) {
+        if (prompt[i] == '%') {
+            i++; // potentially overread the '\0' char (harmless)
+            switch (prompt[i]) {
                 case 'f':
                     // fg color, normal
                     CHK_COLOR("black", BLACK_FG)
@@ -446,10 +497,10 @@ char* getprompt(int status) {
                     CHK_COLOR("reset", RESET_FG)
                     CHK_COLOR("resetall", COLOR_RESET_ALL)
                     
-                    printerr("skipping empty color prompt option: specify non-bold fg color with '%%f{color_name}'");
+                    printerr("resolve_prompt_colors: skipping empty color prompt option: specify non-bold fg color with '%%f{color_name}'");
                     next = "";
                     break;
-                case 'F':
+                 case 'F':
                     // fg color, bold
                     CHK_COLOR("black", COLOR_BOLD BLACK_FG)
                     CHK_COLOR("red", COLOR_BOLD RED_FG)
@@ -462,46 +513,51 @@ char* getprompt(int status) {
                     CHK_COLOR("reset", COLOR_RESET_BOLD RESET_FG)
                     CHK_COLOR("resetall", COLOR_RESET_ALL)
                     
-                    // '%F' without specifying a color, means enabling bold style for default color
+                    printerr("resolve_prompt_colors: skipping empty color prompt option: specify bold fg color with '%%f{color_name}'");
+                    next = "";
+                    break;
+                case 'B':
                     next = COLOR_BOLD;
+                    break;
+                case 'n':
+                    next = COLOR_RESET_BOLD;
                     break;
                 case 'b':
                     // bg color, normal
-                    CHK_COLOR("black", COLOR_BOLD BLACK_BG)
-                    CHK_COLOR("red", COLOR_BOLD RED_BG)
-                    CHK_COLOR("green", COLOR_BOLD GREEN_BG)
-                    CHK_COLOR("yellow", COLOR_BOLD YELLOW_BG)
-                    CHK_COLOR("blue", COLOR_BOLD BLUE_BG)
-                    CHK_COLOR("magenta", COLOR_BOLD MAGENTA_BG)
-                    CHK_COLOR("cyan", COLOR_BOLD CYAN_BG)
-                    CHK_COLOR("white", COLOR_BOLD WHITE_BG)
-                    CHK_COLOR("reset", COLOR_RESET_BOLD RESET_BG)
+                    CHK_COLOR("black", BLACK_BG)
+                    CHK_COLOR("red", RED_BG)
+                    CHK_COLOR("green", GREEN_BG)
+                    CHK_COLOR("yellow", YELLOW_BG)
+                    CHK_COLOR("blue", BLUE_BG)
+                    CHK_COLOR("magenta", MAGENTA_BG)
+                    CHK_COLOR("cyan", CYAN_BG)
+                    CHK_COLOR("white", WHITE_BG)
+                    CHK_COLOR("reset", RESET_BG)
                     CHK_COLOR("resetall", COLOR_RESET_ALL)
                     
-                    printerr("skipping empty color prompt option: specify non-bold bg color with '%%b{color_name}'");
+                    printerr("resolve_prompt_colors: skipping empty color prompt option: specify bg color with '%%b{color_name}'");
                     next = "";
                     break;
                 default:
-                    printerr("skipping unrecognized prompt option '%%%c'", user_prompt_string[i]);
-                    next = "";
+                    sprintf(buf, "%%%c", prompt[i]);
+                    next = buf;
                     break;
             }
         }
         /*** no prompt expansion; copy the char verbatim ***/        
         else {
-            buf[0] = user_prompt_string[i];
-            buf[1] = '\0';
+            sprintf(buf, "%c", prompt[i]);
             next = buf;
         }
         
         /*** check length of string to concat; abort to avoid an overflow ***/
-        if ((strlen(prompt) + strlen(next)) > MAX_PROMPT_LENGTH) {
+        if ((strlen(rv) + strlen(next)) >= MAX_PROMPT_LENGTH) {
             printerr("Prompt expansion too long: not concatting '%s'. Now returning...", next);
-            return prompt;
+            return rv;
         }
-        strcat(prompt, next);
+        strcat(rv, next);
     }
-    return prompt;
+    return rv;   
 }
 
 /*
@@ -671,9 +727,9 @@ int parse_built_in(comd *comd, int index) {
                 free(user_prompt_string);
             else
                 prompt_init = false;
-            printdebug("setting user_prompt_string to '%s'", comd->cmd[1]);
-            user_prompt_string = malloc(strlen(comd->cmd[1])+1);
-            strcpy(user_prompt_string, comd->cmd[1]);
+            char *newprompt = resolve_prompt_colors(comd->cmd[1]);
+            printdebug("setting user_prompt_string to '%s'", newprompt);
+            user_prompt_string = newprompt;
             return EXIT_SUCCESS;
             break;
             }

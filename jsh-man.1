@@ -64,6 +64,9 @@ includes the current hostname
 \fB%s\fP
 includes the return value of the last executed shell command
 .TP
+\fB%s\fP
+includes the return value of the last executed shell command, colored red and bold iff non-zero
+.TP
 \fB%d\fP
 includes the current working directory. When this directory path is longer then the value specified by the optional \fBmax_cwd_length\fP second argument (default is 25), the directory path is 'smart' truncated to include the maximum number of individual trailing directories of the path.
 .TP
@@ -75,6 +78,12 @@ includes a '$' char or a '#' char iff \fBsudo\fP access is activated (usefull fo
 .TP
 \fB%%\fP
 includes the verbatim '%' character
+.TP
+\fB%B\fP
+Turn on bold/bright text coloring
+.TP
+\fB%n\fP
+Turn on normal coloring: turn off bold/bright text coloring
 .TP
 \fB%f{color_name}\fP
 Enables the specified foreground non-bold text color. Recognized colors are \fB{black, red, green, yellow, blue, magenta, cyan, white}\fP. The special colors \fB{reset, resetall}\fP can be used to respectively reset the foreground color to the default or reset all color properties to default.
