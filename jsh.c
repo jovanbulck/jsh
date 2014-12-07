@@ -410,11 +410,12 @@ char* getprompt(int status) {
                     char *pwd_is_git = strclone("git rev-parse --git-dir > /dev/null 2> /dev/null");
 	                if (parseexpr(pwd_is_git) == EXIT_SUCCESS) {
 	                    FILE *fp = popen("git symbolic-ref --short -q HEAD", "r");
-	                    buf[0] = '[';
+	                    buf[0] = ' ';
+	                    buf[1] = '[';
 	                    buf[MAX_PROMPT_BUF_LENGTH-2] = ']';
 	                    buf[MAX_PROMPT_BUF_LENGTH-1] = '\0';
 	                    int j;
-	                    for (j = 1; j < MAX_PROMPT_BUF_LENGTH-2; j++) {
+	                    for (j = 2; j < MAX_PROMPT_BUF_LENGTH-2; j++) {
 	                        int cur = getc(fp);
 	                        if (cur == EOF || cur == '\n') {
 	                            buf[j++] = ']';
