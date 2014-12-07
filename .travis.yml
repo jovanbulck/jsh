@@ -2,7 +2,8 @@ language: c
 compiler:
     - gcc
     - clang
-script: sudo make install && echo "source ./.jsh_travis_test_script.sh" | jsh --nodebug --norc
+## explicitely add the c compiler env variable as sudo wont get it otherwise
+script: sudo make install CC=$CC && echo "source ./.jsh_travis_test_script.sh" | jsh --nodebug --norc
 
 # disable all email notifications
 # notifications:
