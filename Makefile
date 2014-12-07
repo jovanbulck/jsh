@@ -102,7 +102,7 @@ make_for_install:
 ifndef INSTALL_ONLY
 	@echo "-------- installing jsh --------"
 	@echo "making jsh with additional $(INSTALL_CFLAGS) flags"
-	$(MAKE) --always-make EXTRA_CFLAGS='$(INSTALL_CFLAGS)' MAKE_MAN='$(MAKE_MAN)'
+	$(MAKE) --always-make EXTRA_CFLAGS='$(INSTALL_CFLAGS)' NO_MAKE_MAN='$(NO_MAKE_MAN)'
 endif
 
 .PHONY: install

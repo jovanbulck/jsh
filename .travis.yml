@@ -3,7 +3,7 @@ compiler:
     - gcc
     - clang
 ## explicitely add the c compiler env variable as sudo wont get it otherwise
-script: make make_for_install && sudo make install INSTALL_ONLY='' && echo "source ./.jsh_travis_test_script.sh" | ./jsh --nodebug --norc
+script: make make_for_install && sudo make install INSTALL_ONLY='true' && echo "source ./.jsh_travis_test_script.sh" | ./jsh --nodebug --norc
 
 # disable all email notifications
 # notifications:
