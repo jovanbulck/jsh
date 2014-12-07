@@ -2,7 +2,7 @@ language: c
 compiler:
     - gcc
     - clang
-script: make --always-make
+script: make --always-make && echo "echo Hi I am running jsh" | ./jsh --nodebug
 # disable all email notifications
-notifications:
-  email: false
+# notifications:
+#  email: false
