@@ -17,6 +17,6 @@ echo "this is the output of \"ll | grep alias\"" && ll | grep alias
 
 echo -e "\\nthis is the output of \"ll | grep alias | wc\"" && ll | grep alias | wc
 
-# a long comment: looooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong
+# a long comment: loooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo ooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo ooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo ooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo ooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong
 
 echo -e "\\n----------- END OF JSH_TRAVIS_TEST_SCRIPT -----------\\n"
