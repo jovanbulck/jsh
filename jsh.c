@@ -35,7 +35,7 @@
 #define HISTFILE                ".jsh_history"
 #define LOGIN_FILE              ".jsh_login"
 #define LOGOUT_FILE             ".jsh_logout"
-#define DEFAULT_PROMPT          "%u@%h[%s]:%d$ "    // default init prompt string: "user@host[status]:pwd$ "
+#define DEFAULT_PROMPT          "%B%u%n@%h[%S]::%f{yellow}%d%f{reset}%$ "    // default init prompt string: "user@host[status]:pwd$ "
 #define MAX_PROMPT_LENGTH       250                 // maximum length of the displayed prompt string
 #define MAX_PROMPT_BUF_LENGTH   50                  // the max number of msd of a status integer in the prompt string
 // ########## function declarations ##########
@@ -48,6 +48,7 @@ int is_built_in(comd*);
 int parse_built_in(comd*, int);
 void sig_int_handler(int);
 void touch_config_files(void);
+char *resolve_prompt_colors(char*);
 
 // ########## global variables ##########
 #ifdef NODEBUG
@@ -73,7 +74,7 @@ bool I_AM_FORK = false;
 bool IS_INTERACTIVE;            // initialized in things_todo_at_start; (compiler's 'constant initializer' complaints)
 int nb_hist_entries = 0;        // number of saved hist entries in this jsh session
 sigjmp_buf ctrlc_buf;           // buf used for setjmp/longjmp when SIGINT received
-char *user_prompt_string = DEFAULT_PROMPT;
+char *user_prompt_string = ">"; // initialized in things_todo_at_start function
 int MAX_DIR_LENGTH = 25;        // the maximum length of an expanded pwd substring in the prompt string
 
 /*
@@ -250,6 +251,9 @@ void things_todo_at_start(void) {
     
     // built-in aliases
     alias("~", gethome());
+    
+    // default prompt
+    user_prompt_string = resolve_prompt_colors(DEFAULT_PROMPT);
     
     // read ~/.jshrc if any
     if (LOAD_RC) {
@@ -750,11 +754,7 @@ int parse_built_in(comd *comd, int index) {
             else
                 CHK_ARGC("prompt", 1);
             
-            static bool prompt_init = true;
-            if (!prompt_init)
-                free(user_prompt_string);
-            else
-                prompt_init = false;
+            free(user_prompt_string);
             char *newprompt = resolve_prompt_colors(comd->cmd[1]);
             printdebug("setting user_prompt_string to '%s'", newprompt);
             user_prompt_string = newprompt;
