@@ -33,7 +33,7 @@ VERSION_STR             = $(DEV_BUILT_VERSION_STR)
 # 'make release' will override the above line to RELEASE_VERSION_STR
 
 ifndef CC # allow the compiler to be changed with 'export CC=the_compiler'
-	CC                  = clang
+	CC                  = gcc
 endif
 CFLAGS                  = -g -DVERSION='$(VERSION_STR)' $(EXTRA_CFLAGS)
 # EXTRA_CFLAGS is empty on default; 'make install' will add the INSTALL_CFLAGS
@@ -95,11 +95,18 @@ endif
 print_start_info:
 	@echo "-------- making jsh version" $(VERSION_STR) "-------- "
 
-.PHONY: install
-install:
+## this helper target is a hack for TravisCI; since it seems it can't use the clang
+##  compiler when making with 'sudo'
+.PHONY: make_for_install
+make_for_install:
+ifndef INSTALL_ONLY
 	@echo "-------- installing jsh --------"
 	@echo "making jsh with additional $(INSTALL_CFLAGS) flags"
 	$(MAKE) --always-make EXTRA_CFLAGS='$(INSTALL_CFLAGS)' MAKE_MAN='$(MAKE_MAN)'
+endif
+
+.PHONY: install
+install: make_for_install
 	@echo "installing jsh executable in directory $(JSH_INSTALL_DIR)..."
 	@test -d $(JSH_INSTALL_DIR) || (mkdir -p $(JSH_INSTALL_DIR) && echo "created directory $(JSH_INSTALL_DIR)")
 	@install -m 0755 jsh $(JSH_INSTALL_DIR);
