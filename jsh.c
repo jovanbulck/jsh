@@ -399,10 +399,20 @@ char* getprompt(int status) {
                     {
                     // get the directory                
                     char *cwd = getcwd(NULL, 0); //TODO portability: this is GNU libc specific... + errchk
+                    
+                    // replace the home dir with '~' if any
+                    char *home = gethome();
+                    if (strstr(cwd, home)) {
+                        cwd = cwd + strlen(home)-1;
+                        cwd[0] = '~';
+                    }
+                    
                     int cwdlen = strlen(cwd);
-                    // get a ptr to the first '/' within the (truncated) directory string
-                    char *ptr = strchr(cwd + ((MAX_DIR_LENGTH < cwdlen) ? cwdlen - MAX_DIR_LENGTH : 0), '/');
-                    next = ((ptr != NULL) ? ptr : cwd + cwdlen - MAX_DIR_LENGTH);
+                    char *ptr = NULL;
+                    // get a ptr to the first '/' within the truncated directory string
+                    if (cwdlen > MAX_DIR_LENGTH)
+                        ptr = strchr(cwd + cwdlen - MAX_DIR_LENGTH, '/');
+                    next = ptr? ptr : cwd + ((MAX_DIR_LENGTH < cwdlen) ? cwdlen - MAX_DIR_LENGTH : 0);
                     break;
                     }
                 case 'g':

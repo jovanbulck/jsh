@@ -68,7 +68,7 @@ includes the return value of the last executed shell command
 includes the return value of the last executed shell command, colored red and bold iff non-zero
 .TP
 \fB%d\fP
-includes the current working directory. When this directory path is longer then the value specified by the optional \fBmax_cwd_length\fP second argument (default is 25), the directory path is 'smart' truncated to include the maximum number of individual trailing directories of the path.
+includes the current working directory. When this directory path is longer then the value specified by the optional \fBmax_cwd_length\fP second argument (default is 25), the directory path is 'smart' truncated to include the maximum number of individual trailing directories of the path. If the path contains the current user's home directory, it is replaced with a '~' char.
 .TP
 \fB%g\fP
 includes the \fBgit\fP branch name iff the current working directory is a \fBgit\fP repository
