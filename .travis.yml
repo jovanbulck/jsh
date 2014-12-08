@@ -2,8 +2,8 @@ language: c
 compiler:
     - gcc
     - clang
-## explicitely add the c compiler env variable as sudo wont get it otherwise
-script: make make_for_install && sudo make install INSTALL_ONLY='true' && echo "source ./.jsh_travis_test_script.sh" | ./jsh --nodebug --norc
+## install jsh and the manpage; then check whether man page installed and try to run jsh with a testscript
+script: make make_for_install && sudo make install INSTALL_ONLY='true' && man jsh > /dev/null 2>&1 && echo "source ./.jsh_travis_test_script.sh" | ./jsh --nodebug --norc
 
 # disable all email notifications
 # notifications:
