@@ -47,9 +47,9 @@ ECHO_LIBS               = echo "Linking jsh with the following libraries: $(LIBS
 UNAME_S                 = $(shell uname -s)
 
 ifeq ($(UNAME_S), Darwin)
-    IS_BSD
+    IS_BSD=1
 else ifeq ($(UNAME_S), FreeBSD)
-    IS_BSD
+    IS_BSD=1
 endif
 
 ifeq ($(UNAME_S), Darwin)

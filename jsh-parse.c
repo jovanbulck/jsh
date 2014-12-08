@@ -109,6 +109,16 @@ void freecomdlist(comd *list) {
    }
 }
 
+/**
+* TODO also take aliases etc into account
+*/
+int parse_from_file(char *line) {
+    char *resolved = resolvealiases(line);
+    int rv = parseexpr(resolved);
+    free(resolved);
+    return rv;
+}
+
 /*
  * parseexpr: parses the '\0' terminated expr string recursivly, according to the 'expr' grammar.
  * returns exit status (EXIT_SUCCESS || !EXIT_SUCCESS) of executed expression

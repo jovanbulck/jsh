@@ -35,6 +35,11 @@ struct comd {
 };
 typedef struct comd comd;
 
+/**
+* TODO also take aliases etc into account
+*/
+int parse_from_file(char *line);
+
 /*
  * parseexpr: parses the '\0' terminated expr string recursivly, according to the 'expr' grammar.
  * returns exit status (EXIT_SUCCESS || !EXIT_SUCCESS) of executed expression
