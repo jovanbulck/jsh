@@ -7,7 +7,7 @@
                 /___/
                               a basic UNIX shell implementation in C
 ```
-## Introducing `jsh`      [![build-status](https://travis-ci.org/jovanbulck/jo-shell.svg?branch=master)](https://travis-ci.org/jovanbulck/jo-shell) [![release](http://github-release-version.herokuapp.com/github/jovanbulck/jo-shell/release.svg?style=plastic)](https://github.com/jovanbulck/jo-shell/releases/latest) [![license](http://img.shields.io/:license-GPL-orange.svg)](https://gnu.org/licenses/gpl.html)
+## Introducing `jsh`      [![build-status](https://travis-ci.org/jovanbulck/jo-shell.svg?branch=master)](https://travis-ci.org/jovanbulck/jo-shell) [![release](http://github-release-version.herokuapp.com/github/jovanbulck/jo-shell/release.svg?style=plastic)](https://github.com/jovanbulck/jo-shell/releases/latest) [![license](http://img.shields.io/:license-gpl3-orange.svg)](https://gnu.org/licenses/gpl.html)
 
 From the `man`page:
 
