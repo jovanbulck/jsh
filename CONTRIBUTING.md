@@ -1,24 +1,22 @@
 # How to contribute
 
-:+1::tada: First off, thanks for taking the time to contribute! :tada::+1:
-
-*Developers, developers, developers*: here are some ways to help the `jsh` project:
+:+1::tada: *Developers, developers, developers*: here are some ways to help the `jsh` project! :tada::+1:
 
 ## Bug reporting and feature requests
 
-Reporting bugs is a great way to help the `jsh` project too, report your issues 
-[here](https://github.com/jovanbulck/jo-shell/issues) 
+:bug: Reporting bugs is a great way to help the `jsh` project too, report your issues 
+[here](https://github.com/jovanbulck/jo-shell/issues). Please include the output of jsh --version in all bug reports.
 
-Having a great idea to improve `jsh`? Shout [here](https://github.com/jovanbulck/jo-shell/issues)! 
+:star: Having a great idea to improve `jsh`? Shout [here](https://github.com/jovanbulck/jo-shell/issues)!
 
 ## Testing
 
-If you tested jsh on a new platform and have some extra instructions, add them 
+:wrench: If you tested jsh on a new or existing platform and have some extra instructions, add them 
 [here](https://github.com/jovanbulck/jo-shell/wiki/Compiling-and-running) 
 
 ## Uploading binary Builds
 
-When a new [release](https://github.com/jovanbulck/jo-shell/releases) comes out, it's great to add new binaries 
+:penguin: :apple: When a new [release](https://github.com/jovanbulck/jo-shell/releases) comes out, it's great to add new binaries 
 for various platforms. As we've had troubles with Github-releases binary builds becoming unavailable, 
 I think it's best to open a pull request for the 
 [`gh-pages` branch](https://github.com/jovanbulck/jo-shell/tree/gh-pages/releases) containing a back-up of all 
@@ -26,7 +24,9 @@ the releases binaries. I'll then add them to the github release page.
 
 ## Coding
 
-Feel free to improve existing or implement new features. If you're working on an existing issue, claim it. 
+:ghost: Feel free to improve existing or implement new features. If you need some inspiration, see the open [issue](https://github.com/jovanbulck/jo-shell/issues) list. Issues marked with the [`get-to-know-jsh`](https://github.com/jovanbulck/jo-shell/labels/get-to-know-jsh) label should be fairly easy.
+
+If you're working on an existing issue, claim it. 
 If you're working on a major new feature, you'll best open and claim a new issue for it. 
 One address for all your pull requests: https://github.com/jovanbulck/jo-shell/pulls
 
