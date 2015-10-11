@@ -1,13 +1,13 @@
-<!--- logo generated with "figlet -cf smslant jsh" --->
+<!--- logo generated with "figlet -w 52 -cf smslant jsh && echo -e "\\t\\t\\ta basic UNIX shell implementation in C"" --->
 ```
-                                      _     __ 
-                                     (_)__ / / 
-                                    / (_-</ _ \
-                                 __/ /___/_//_/
-                                |___/          
-                                      a basic UNIX shell implementation in C
+                        _     __ 
+                       (_)__ / / 
+                      / (_-</ _ \
+                   __/ /___/_//_/
+                  |___/          
+                        a basic UNIX shell implementation in C
 ```
-## Introducing `jsh`      [![build-status](https://travis-ci.org/jovanbulck/jo-shell.svg?branch=master)](https://travis-ci.org/jovanbulck/jo-shell) [![release](http://github-release-version.herokuapp.com/github/jovanbulck/jsh/release.svg?style=plastic)](https://github.com/jovanbulck/jsh/releases/latest) [![license](http://img.shields.io/:license-gpl3-orange.svg)](https://gnu.org/licenses/gpl.html)
+## Introducing `jsh`      [![build-status](https://travis-ci.org/jovanbulck/jsh.svg?branch=master)](https://travis-ci.org/jovanbulck/jsh) [![release](http://github-release-version.herokuapp.com/github/jovanbulck/jsh/release.svg?style=plastic)](https://github.com/jovanbulck/jsh/releases/latest) [![license](http://img.shields.io/:license-gpl3-orange.svg)](https://gnu.org/licenses/gpl.html)
 
 From the `man`page:
 
