@@ -2,7 +2,7 @@
 # =============================================================
 # This file is part of jsh.
 # 
-# jsh (jo-shell): A basic shell implementation
+# jsh: A basic shell implementation
 # Copyright (C) 2014 Jo Van Bulck <jo.vanbulck@student.kuleuven.be>
 #
 # jsh is free software: you can redistribute it and/or modify
@@ -24,7 +24,7 @@
 if [ ! command -v dialog >/dev/null 2>&1 ]; then
     echo "Seems like the 'dialog' program isn't installed on you system."
     echo "The installer will exit. Try installing jsh yourself with the 'make' utility."
-    echo "See https://github.com/jovanbulck/jo-shell/wiki/Compiling-and-running for more info."
+    echo "See https://github.com/jovanbulck/jsh/wiki/Compiling-and-running for more info."
     exit 1
 fi
 
@@ -34,7 +34,7 @@ if [ `uname -s` = "FreeBSD" ]; then
     if ! [ command -v gmake >/dev/null 2>&1 ]; then
         echo "BSD system detected. It seems GNU make ('gmake') isn't installed though."
         echo "The installer will exit. Try installing jsh yourself with the 'gmake' utility."
-        echo "See https://github.com/jovanbulck/jo-shell/wiki/Compiling-and-running for more info."
+        echo "See https://github.com/jovanbulck/jsh/wiki/Compiling-and-running for more info."
         exit 1
     fi
 else
@@ -128,7 +128,7 @@ password below:"
     if [ ! $retval -eq 0 ]
     then
         display_info "make jsh" "make exited with an error (return value = $retval) \
-The installer will now exit.\n\nSee (https://github.com/jovanbulck/jo-shell/ \
+The installer will now exit.\n\nSee (https://github.com/jovanbulck/jsh/ \
 wiki/Compiling-and-running) for help on compiling jsh for your system."
         exit_installer
     fi
@@ -327,7 +327,7 @@ to edit it afterwards." 8 60
             then
                 echo "#" >> $file
                 echo "# Insert commands here to create your own custom jsh shell! :-)" >> $file
-                echo "# To get you started, see (https://github.com/jovanbulck/jo-shell/wiki/Sample-\
+                echo "# To get you started, see (https://github.com/jovanbulck/jsh/wiki/Sample-\
 configuration-files)" >> $file
                 echo "# for more info and example configuration files" >> $file
                 echo "" >> $file

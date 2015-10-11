@@ -3,13 +3,13 @@
 .\"
 .TH JSH 1 "@DATE" "jsh @VERSION" "jsh man page"
 .SH NAME
-jsh (jo-shell) \- A basic UNIX shell implementation in C
+jsh \- A basic UNIX shell implementation in C
 .SH SYNOPSIS
 \fBjsh\fP [options]
 .SH DESCRIPTION
 \fBjsh\fP is a UNIX command interpreter (shell) that executes commands read from the standard input or from a file. \fBjsh\fP implements a subset of the \fBsh\fP language grammar and is intended to be POSIX-conformant.
 
-\fBjsh\fP is written 'just for fun' and is not intented to be a full competitor to advanced UNIX shells such as \fBbash\fP and \fBzsh\fP. \fBjsh\fP is free software and you are welcome to collaborate on the github page (https://github.com/jovanbulck/jo-shell) or to redistribute \fBjsh\fP under the conditions of the GNU General Public License.
+\fBjsh\fP is written 'just for fun' and is not intented to be a full competitor to advanced UNIX shells such as \fBbash\fP and \fBzsh\fP. \fBjsh\fP is free software and you are welcome to collaborate on the github page (https://github.com/jovanbulck/jsh) or to redistribute \fBjsh\fP under the conditions of the GNU General Public License.
 .SH OPTIONS
 \fBjsh\fP supports any combination of the following options:
 .TP
@@ -97,9 +97,9 @@ Enables the specified foreground bold/bright text color. Recognized colors are t
 \fB%b{color_name}\fP
 Enables the specified background text color. Recognized colors are the same as with \fB%f\fP above. The special colors \fB{reset, resetall}\fP can be used to respectively reset the background color to the default or reset all color properties to default.
 .SH THE JSH WIKI
-\fBjsh\fP has a wiki (https://github.com/jovanbulck/jo-shell/wiki) where you can find up-to-date information and installation instructions for various platforms.
+\fBjsh\fP has a wiki (https://github.com/jovanbulck/jsh/wiki) where you can find up-to-date information and installation instructions for various platforms.
 .SH BUGS REPORTS
-If you find a bug or vulnerability in \fBjsh\fP, you should report it on the github page (https://github.com/jovanbulck/jo-shell/issues). Please include the output of \fBjsh --version\fP in all bug reports.
+If you find a bug or vulnerability in \fBjsh\fP, you should report it on the github page (https://github.com/jovanbulck/jsh/issues). Please include the output of \fBjsh --version\fP in all bug reports.
 .SH KNOWN BUGS
 \fBjsh\fP only supports a small subset of the \fBsh\fP language grammar and its interpretation can sometimes be ambiguous. You're welcome to propose better interpretations on the github page, linked above.
 
@@ -115,7 +115,7 @@ Job control is not yet implemented; pressing ^Z will suspend the \fBjsh\fP shell
 
 Any resemblance of \fBjsh\fP to actual persons is purely coincidental.
 .SH AUTHOR
-\fBjsh\fP was orginally written by Jo Van Bulck <jo.vanbulck@student.kuleuven.be>. For additional contributors, use \fBgit shortlog -sn\fP on the jo-shell.git repository.
+\fBjsh\fP was orginally written by Jo Van Bulck <jo.vanbulck@student.kuleuven.be>. For additional contributors, use \fBgit shortlog -sn\fP on the jsh.git repository.
 .SH LICENSE
 \fBjsh\fP is free software, licensed under the GNU General Public License (https://gnu.org/licenses/gpl.html). Try \fBjsh --license\fP for more information.
 .SH SEE ALSO

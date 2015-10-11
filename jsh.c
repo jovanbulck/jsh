@@ -1,6 +1,6 @@
 /* This file is part of jsh.
  * 
- * jsh (jo-shell): A basic UNIX shell implementation in C
+ * jsh: A basic UNIX shell implementation in C
  * Copyright (C) 2014 Jo Van Bulck <jo.vanbulck@student.kuleuven.be>
  *
  * jsh is free software: you can redistribute it and/or modify
@@ -130,7 +130,7 @@ void option(char *str) {
 					return optionfull(str);
 				break; // else: ignore
 			case 'h':
-                printf("jo-shell: A basic UNIX shell implementation in C\n");
+                printf("jsh: A basic UNIX shell implementation in C\n");
                 printf("\nRecognized options:\n");
                 printf("-h, --help\tdisplay this help message\n");
                 printf("-d, --debug\tturn printing of debug messages on\n");
@@ -146,7 +146,7 @@ void option(char *str) {
        	        printf("~/%s\tfile containing commands to be executed at logout of an interactive session\n", LOGOUT_FILE);
     	        printf("~/%s\tfile containing the command history auto loaded and saved at login/logout\n", HISTFILE);
     	        printf("\nReport bugs to: jo.vanbulck@student.kuleuven.be\n");
-                printf("jsh homepage: <https://github.com/jovanbulck/jo-shell>\n");
+                printf("jsh homepage: <https://github.com/jovanbulck/jsh>\n");
     	        printf("This program is free software, and you are welcome to redistribute it under\n");
                 printf("the condititions of the GNU General Public License. Try 'jsh --license' for more info.\n");
 		        exit(EXIT_SUCCESS);
@@ -170,7 +170,7 @@ void option(char *str) {
 		        LOAD_RC = false;
 		        break;
 		    case 'l':
-				printf("jo-shell: A basic UNIX shell implementation in C\n");
+				printf("jsh: A basic UNIX shell implementation in C\n");
                 printf("Copyright (C) 2014 Jo Van Bulck <jo.vanbulck@student.kuleuven.be>\n");
                 printf("\nThis program is free software: you can redistribute it and/or modify\n");
                 printf("it under the terms of the GNU General Public License as published by\n");
