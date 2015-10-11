@@ -1,6 +1,6 @@
 # Changelog for `jsh`
 
-This page lists all changes made to the `jsh` source code since [the latest release](https://github.com/jovanbulck/jo-shell/releases/latest). On commiting changes to the `master` branch, this page should be updated.
+This page lists all changes made to the `jsh` source code since [the latest release](https://github.com/jovanbulck/jsh/releases/latest). On commiting changes to the `master` branch, this page should be updated.
 
 ## Changes to be included in the next release (now in `master`)
 
