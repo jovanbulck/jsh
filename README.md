@@ -25,7 +25,7 @@ From the `man`page:
 
 ## Get it!
 
-<a href="https://github.com/jovanbulck/jsh/releases/latest"><img src="https://jovanbulck.github.io/jsh/download_icon_right_space.png"
+<a href="https://github.com/jovanbulck/jsh/releases/latest"><img src="http://jovanbulck.github.io/jsh/icons/download_icon_right_space.png"
  alt="Download logo" title="Download latest release" align="left" /></a>
 
 [This page](https://github.com/jovanbulck/jsh/releases/latest) provides pre-built binaries for all official `jsh` releases. To build `jsh` yourself, clone this respository, `cd` into it and execute `make`. See [the wiki page](https://github.com/jovanbulck/jsh/wiki/Compiling-and-running) for more info and dependencies overview.
