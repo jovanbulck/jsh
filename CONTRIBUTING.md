@@ -7,13 +7,13 @@
 ## Bug reporting and feature requests
 
 Reporting bugs is a great way to help the `jsh` project too, report your issues 
-[here](https://github.com/jovanbulck/jsh/issues) 
+[here](https://github.com/jovanbulck/jsh/issues). Please include the output of jsh --version in all bug reports.
 
 Having a great idea to improve `jsh`? Shout [here](https://github.com/jovanbulck/jsh/issues)! 
 
 ## Testing
 
-If you tested jsh on a new platform and have some extra instructions, add them 
+If you tested jsh on a new or existing platform and have some extra instructions, add them 
 [here](https://github.com/jovanbulck/jsh/wiki/Compiling-and-running) 
 
 ## Uploading binary Builds
@@ -26,7 +26,9 @@ the releases binaries. I'll then add them to the github release page.
 
 ## Coding
 
-Feel free to improve existing or implement new features. If you're working on an existing issue, claim it. 
+Feel free to improve existing or implement new features. If you need some inspiration, see the open [issue](https://github.com/jovanbulck/jsh/issues) list. Issues marked with the [`get-to-know-jsh`](https://github.com/jovanbulck/jsh/labels/get-to-know-jsh) label should be fairly easy.
+
+If you're working on an existing issue, claim it. 
 If you're working on a major new feature, you'll best open and claim a new issue for it. 
 One address for all your pull requests: https://github.com/jovanbulck/jsh/pulls
 
