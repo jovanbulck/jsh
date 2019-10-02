@@ -133,7 +133,7 @@ int parseexpr(char *expr) {
     
     /**** 0. skip all leading spaces tabs and newlines ****/
     int k =  strspn(expr, " \t\n");
-    expr = expr + k;
+    expr += k;
     if (k)
         printdebug("parseexpr: skipped %d leading spaces/tabs", k);
     
